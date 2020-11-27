@@ -47,7 +47,6 @@
 #define TEMP2_Pin GPIO_PIN_10
 #define TEMP2_GPIO_Port GPIOB
 
-
 #ifdef __cplusplus
  extern "C" {
 #endif
