@@ -43,6 +43,7 @@ void MX_TIM8_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
+void pwm1_output(uint32_t cycle, uint32_t pulse_num);
 /* USER CODE BEGIN Prototypes */
 
 /* USER CODE END Prototypes */

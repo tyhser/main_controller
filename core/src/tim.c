@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
+#include "syslog.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -55,8 +56,8 @@ void MX_TIM1_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_ENABLE;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_OC4REF;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
   {
     Error_Handler();
@@ -102,7 +103,7 @@ void MX_TIM8_Init(void)
   {
     Error_Handler();
   }
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_DISABLE;
+  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
   sSlaveConfig.InputTrigger = TIM_TS_ITR0;
   if (HAL_TIM_SlaveConfigSynchro(&htim8, &sSlaveConfig) != HAL_OK)
   {
@@ -140,8 +141,8 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_TIM8_CLK_ENABLE();
 
     /* TIM8 interrupt Init */
-    HAL_NVIC_SetPriority(TIM8_CC_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(TIM8_CC_IRQn);
+    HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM8_UP_TIM13_IRQn);
   /* USER CODE BEGIN TIM8_MspInit 1 */
 
   /* USER CODE END TIM8_MspInit 1 */
@@ -206,7 +207,27 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+    if (htim == &htim8) {
+        LOG_I("TIM8 update");
+        HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
+        HAL_TIM_Base_Stop_IT(&htim1);
+        HAL_TIM_Base_Stop_IT(&htim8);
+        __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
+    }
+}
 
+void pwm1_output(uint32_t cycle, uint32_t pulse_num)
+{
+    __HAL_TIM_ENABLE_IT(&htim8, TIM_IT_UPDATE);
+    __HAL_TIM_SetAutoreload(&htim8, pulse_num - 1);
+    HAL_TIM_Base_Start_IT(&htim8);
+    __HAL_TIM_SetAutoreload(&htim1, 1000000/cycle - 1);
+    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, (1000000/cycle)/2);
+    HAL_TIM_Base_Start_IT(&htim1);
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

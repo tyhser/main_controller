@@ -101,8 +101,7 @@ int main(void)
 #if 0
 	HAL_UART_Receive_IT(&huart1, Rx_Data,14);
 #endif
-    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-    __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, 5000);
+    pwm1_output(100, 5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -110,6 +109,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+      LOG_I("TIM8 CNT:%d", TIM8->CNT);
     /* USER CODE BEGIN 3 */
 
   }
