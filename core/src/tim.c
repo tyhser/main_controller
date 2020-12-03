@@ -644,24 +644,67 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim1);
         HAL_TIM_Base_Stop_IT(&htim8);
         __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
+        set_motor_state(MOTOR_SYRINGE_ID, MOTOR_STOP);
     }
     else if (htim == &htim9) {
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
         HAL_TIM_Base_Stop_IT(&htim2);
         HAL_TIM_Base_Stop_IT(&htim9);
         __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
+        set_motor_state(MOTOR_X_AXIS_ID, MOTOR_STOP);
     }
     else if (htim == &htim12) {
         HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
         HAL_TIM_Base_Stop_IT(&htim4);
         HAL_TIM_Base_Stop_IT(&htim12);
         __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
+        set_motor_state(MOTOR_Z_AXIS_ID, MOTOR_STOP);
     }
     else if (htim == &htim5) {
         HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
         HAL_TIM_Base_Stop_IT(&htim3);
         HAL_TIM_Base_Stop_IT(&htim5);
         __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
+        set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
+    }
+}
+
+void pwm_stop_output(pwm_id_t pwm_id)
+{
+    switch (pwm_id)
+    {
+        case PWM_1:
+        {
+            HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
+            HAL_TIM_Base_Stop_IT(&htim4);
+            HAL_TIM_Base_Stop_IT(&htim12);
+            __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
+        }
+        break;
+        case PWM_2:
+        {
+            HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+            HAL_TIM_Base_Stop_IT(&htim2);
+            HAL_TIM_Base_Stop_IT(&htim9);
+            __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
+        }
+        break;
+        case PWM_3:
+        {
+            HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
+            HAL_TIM_Base_Stop_IT(&htim1);
+            HAL_TIM_Base_Stop_IT(&htim8);
+            __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
+        }
+        break;
+        case PWM_4:
+        {
+            HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+            HAL_TIM_Base_Stop_IT(&htim3);
+            HAL_TIM_Base_Stop_IT(&htim5);
+            __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
+        }
+        break;
     }
 }
 
@@ -673,9 +716,9 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
         {
             __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim12, pulse_num - 1);
-            HAL_TIM_Base_Start_IT(&htim12);
             __HAL_TIM_SetAutoreload(&htim4, 1000000/cycle - 1);
             __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, (1000000/cycle)/2);
+            HAL_TIM_Base_Start_IT(&htim12);
             HAL_TIM_Base_Start_IT(&htim4);
             HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
         }
@@ -684,9 +727,9 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
         {
             __HAL_TIM_ENABLE_IT(&htim8, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim8, pulse_num - 1);
-            HAL_TIM_Base_Start_IT(&htim8);
             __HAL_TIM_SetAutoreload(&htim1, 1000000/cycle - 1);
             __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, (1000000/cycle)/2);
+            HAL_TIM_Base_Start_IT(&htim8);
             HAL_TIM_Base_Start_IT(&htim1);
             HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
         }
@@ -695,9 +738,9 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
         {
             __HAL_TIM_ENABLE_IT(&htim9, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim9, pulse_num - 1);
-            HAL_TIM_Base_Start_IT(&htim9);
             __HAL_TIM_SetAutoreload(&htim2, 1000000/cycle - 1);
             __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_2, (1000000/cycle)/2);
+            HAL_TIM_Base_Start_IT(&htim9);
             HAL_TIM_Base_Start_IT(&htim2);
             HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
         }
@@ -706,14 +749,29 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
         {
             __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim5, pulse_num - 1);
-            HAL_TIM_Base_Start_IT(&htim5);
             __HAL_TIM_SetAutoreload(&htim3, 1000000/cycle - 1);
             __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_1, (1000000/cycle)/2);
+            HAL_TIM_Base_Start_IT(&htim5);
             HAL_TIM_Base_Start_IT(&htim3);
             HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
         }
         break;
     }
+}
+
+void pwm_output_init(void)
+{
+    MX_TIM1_Init();
+    MX_TIM8_Init();
+
+    MX_TIM2_Init();
+    MX_TIM9_Init();
+
+    MX_TIM4_Init();
+    MX_TIM12_Init();
+
+    MX_TIM3_Init();
+    MX_TIM5_Init();
 }
 /* USER CODE END 1 */
 

@@ -49,19 +49,15 @@ typedef uint8_t pwm_id_t;
 
 /* USER CODE END Private defines */
 
-void MX_TIM1_Init(void);
-void MX_TIM8_Init(void);
-void MX_TIM2_Init(void);
-void MX_TIM9_Init(void);
-void MX_TIM4_Init(void);
-void MX_TIM12_Init(void);
-void MX_TIM3_Init(void);
-void MX_TIM5_Init(void);
-
+void pwm_output_init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num);
 /* USER CODE BEGIN Prototypes */
+#define PWM1(i) pwm_output(PWM_1, 500, (i))
+#define PWM2(i) pwm_output(PWM_2, 500, (i))
+#define PWM3(i) pwm_output(PWM_3, 500, (i))
+#define PWM4(i) pwm_output(PWM_4, 500, (i))
 
 /* USER CODE END Prototypes */
 
