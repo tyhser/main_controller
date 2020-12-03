@@ -33,17 +33,31 @@ extern "C" {
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim9;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim12;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim5;
 
 /* USER CODE BEGIN Private defines */
+#define PWM_1 1
+#define PWM_2 2
+#define PWM_3 3
+#define PWM_4 4
+typedef uint8_t pwm_id_t;
 
 /* USER CODE END Private defines */
 
-void MX_TIM1_Init(void);
-void MX_TIM8_Init(void);
-
+void pwm_output_init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
+void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num);
 /* USER CODE BEGIN Prototypes */
+#define PWM1(i) pwm_output(PWM_1, 500, (i))
+#define PWM2(i) pwm_output(PWM_2, 500, (i))
+#define PWM3(i) pwm_output(PWM_3, 500, (i))
+#define PWM4(i) pwm_output(PWM_4, 500, (i))
 
 /* USER CODE END Prototypes */
 

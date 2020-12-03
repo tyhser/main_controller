@@ -92,12 +92,14 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   //MX_IWDG_Init();
-  MX_TIM1_Init();
-  MX_TIM8_Init();
+  pwm_output_init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
     LOG_I("Init done.");
+#if 0
+	HAL_UART_Receive_IT(&huart1, Rx_Data,14);
+#endif
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -105,7 +107,13 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+      HAL_Delay(1000);
+      PWM1(100);
+      PWM2(100);
+      PWM3(100);
+      PWM4(100);
     /* USER CODE BEGIN 3 */
+
   }
   /* USER CODE END 3 */
 }

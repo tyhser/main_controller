@@ -8,7 +8,6 @@
 struct motor {
     motor_state_t state;
     direction_t direction;
-    uint32_t volatile remain_steps;
     bool home;
 } motor_context[4];
 
@@ -21,16 +20,16 @@ bool is_motor_zero(motor_id_t motor_id)
     switch (motor_id)
     {
         case MOTOR_SYRINGE_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_4);
+            ret = !(bool)HAL_GPIO_ReadPin(home_1_GPIO_Port, home_1_Pin);
             break;
         case MOTOR_X_AXIS_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_3);
+            ret = !(bool)HAL_GPIO_ReadPin(home_2_GPIO_Port, home_2_Pin);
             break;
         case MOTOR_Z_AXIS_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_0);
+            ret = !(bool)HAL_GPIO_ReadPin(home_3_GPIO_Port, home_3_Pin);
             break;
         case MOTOR_RECEIVED_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(GPIOC,GPIO_PIN_1);
+            ret = !(bool)HAL_GPIO_ReadPin(home_4_GPIO_Port, home_4_Pin);
             break;
         default:
             break;
@@ -40,15 +39,16 @@ bool is_motor_zero(motor_id_t motor_id)
 
 void set_motor_direction(motor_id_t motor_id, direction_t direction)
 {
+    bool error = false;
     LOG_I("set motor %d direction %d", motor_id, direction);
     switch (motor_id)
     {
         case MOTOR_SYRINGE_ID:
         {
             if (direction == DIRECTION_FWD) {
-                HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_SET);
+                HAL_GPIO_WritePin(dir_1_GPIO_Port, dir_1_Pin, GPIO_PIN_SET);
             } else if (direction == DIRECTION_REV) {
-                HAL_GPIO_WritePin(GPIOC,GPIO_PIN_8,GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(dir_1_GPIO_Port, dir_1_Pin, GPIO_PIN_RESET);
             } else {
                 LOG_E("unknow direction");
             }
@@ -57,9 +57,9 @@ void set_motor_direction(motor_id_t motor_id, direction_t direction)
         case MOTOR_X_AXIS_ID:
         {
            if (direction == DIRECTION_FWD) {
-                HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_SET);
+                HAL_GPIO_WritePin(dir_2_GPIO_Port, dir_2_Pin, GPIO_PIN_SET);
             } else if (direction == DIRECTION_REV) {
-                HAL_GPIO_WritePin(GPIOA,GPIO_PIN_11,GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(dir_2_GPIO_Port, dir_2_Pin, GPIO_PIN_RESET);
             } else {
                 LOG_E("unknow direction");
             }
@@ -68,9 +68,9 @@ void set_motor_direction(motor_id_t motor_id, direction_t direction)
         case MOTOR_Z_AXIS_ID:
         {
            if (direction == DIRECTION_FWD) {
-                HAL_GPIO_WritePin(GPIOB,GPIO_PIN_6,GPIO_PIN_SET);
+                HAL_GPIO_WritePin(dir_3_GPIO_Port, dir_3_Pin, GPIO_PIN_SET);
             } else if (direction == DIRECTION_REV) {
-                HAL_GPIO_WritePin(GPIOB,GPIO_PIN_6,GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(dir_3_GPIO_Port, dir_3_Pin, GPIO_PIN_RESET);
             } else {
                 LOG_E("unknow direction");
             }
@@ -79,74 +79,106 @@ void set_motor_direction(motor_id_t motor_id, direction_t direction)
         case MOTOR_RECEIVED_ID:
         {
            if (direction == DIRECTION_FWD) {
-                HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);
+                HAL_GPIO_WritePin(dir_4_GPIO_Port, dir_4_Pin, GPIO_PIN_SET);
             } else if (direction == DIRECTION_REV) {
-                HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);
+                HAL_GPIO_WritePin(dir_4_GPIO_Port, dir_4_Pin, GPIO_PIN_RESET);
             } else {
                 LOG_E("unknow direction");
             }
             break;
         }
         default:
+        {
+            error = true;
             LOG_E("unknow motor");
+        }
             break;
     }
-    MOTOR(motor_id).direction = direction;
+    if (!error) {
+        MOTOR(motor_id).direction = direction;
+    }
 }
 
-void set_motor_run_stop(motor_id_t id, motor_state_t state)
+void motor_run_steps(motor_id_t id, uint32_t step)
 {
-    LOG_I("set motor %d state %d", id, state);
+    bool error = false;
+    LOG_I("motor[%d] start to run [%d]steps", id, step);
     switch (id)
     {
         case MOTOR_SYRINGE_ID:
         {
-            if (state == MOTOR_RUN) {
-                HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
-            } else if (state == MOTOR_STOP) {
-                HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_2);
-            } else {
-                LOG_E("unknow motor state");
-            }
-            break;
+            PWM1(step);
         }
+        break;
         case MOTOR_X_AXIS_ID:
         {
-            if (state == MOTOR_RUN) {
-                HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-            } else if (state == MOTOR_STOP) {
-                HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_1);
-            } else {
-                LOG_E("unknow motor state");
-            }
-            break;
+            PWM2(step);
         }
+        break;
         case MOTOR_Z_AXIS_ID:
         {
-             if (state == MOTOR_RUN) {
-                    HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
-                } else if (state == MOTOR_STOP) {
-                    HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
-                } else {
-                    LOG_E("unknow motor state");
-                }
-                break;
+            PWM3(step);
         }
+        break;
         case MOTOR_RECEIVED_ID:
         {
-            if (state == MOTOR_RUN) {
-                    HAL_TIM_PWM_Start(&htim12, TIM_CHANNEL_1);
-                } else if (state == MOTOR_STOP) {
-                    HAL_TIM_PWM_Stop(&htim12, TIM_CHANNEL_1);
-                } else {
-                    LOG_E("unknow motor state");
-                }
-                break;
+            PWM4(step);
         }
+        break;
         default:
+        {
             LOG_E("unknow motor");
-            break;
+            error = true;
+        }
+        break;
     }
+    if (!error) {
+        MOTOR(id).state = MOTOR_RUN;
+    }
+}
+
+void motor_stop(motor_id_t id)
+{
+    bool error = false;
+    LOG_I("stop motor[%d]", id);
+    switch (id)
+    {
+        case MOTOR_SYRINGE_ID:
+        {
+            pwm_step_output(PWM_1);
+        }
+        break;
+        case MOTOR_X_AXIS_ID:
+        {
+            pwm_step_output(PWM_2);
+        }
+        break;
+        case MOTOR_Z_AXIS_ID:
+        {
+            pwm_step_output(PWM_3);
+        }
+        break;
+        case MOTOR_RECEIVED_ID:
+        {
+            pwm_step_output(PWM_4);
+        }
+        break;
+        default:
+        {
+            LOG_E("unknow motor");
+            error = true;
+        }
+        break;
+    }
+    if (!error) {
+        MOTOR(id).state = MOTOR_STOP;
+    }
+}
+
+void set_motor_state(motor_id_t id, motor_state_t s)
+{
+    MOTOR(id).state = (s);
+    LOG_I("set motor[%d] state:[%d]", id, s);
 }
 
 void set_valve_state(valve_id_t valve, valve_state_t state)
@@ -177,6 +209,7 @@ void set_valve_state(valve_id_t valve, valve_state_t state)
     }
 }
 
+
 bool is_motor_id(uint8_t data)
 {
     if (data < MOTOR_END_ID && data > 0) {
@@ -187,18 +220,13 @@ bool is_motor_id(uint8_t data)
     }
 }
 
-void set_drive_parameter_by_input(uint8_t data[5])
+void syringe_absorb(uint32_t step)
 {
-    if (is_motor_id(data[0])) {
-        if (data[1] == 0xff) {
-            set_motor_direction(data[0], DIRECTION_FWD);
-        } else if (data[1] == 0x00) {
-            set_motor_direction(data[0], DIRECTION_REV);
-        } else {
-            LOG_E("direction error");
-        }
-        MOTOR(data[0]).remain_steps = ((uint32_t)data[0]<<16)|((uint32_t)data[1]<<8)|data[2];
-   }
+    if (!is_motor_zero(MOTOR_SYRINGE_ID)) {
+        set_motor_direction(MOTOR_SYRINGE_ID, DIRECTION_REV);
+        
+    } else {
+
+    }
+
 }
-
-

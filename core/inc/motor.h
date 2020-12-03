@@ -30,10 +30,9 @@ typedef bool valve_state_t;
 typedef bool motor_state_t;
 
 bool is_motor_zero(motor_id_t motor_id);
-
 void set_motor_direction(motor_id_t motor_id, direction_t direction);
-
-void set_motor_run_stop(motor_id_t id, motor_state_t state);
-
+void motor_stop(motor_id_t id);
+void motor_run_steps(motor_id_t id, uint32_t step);
 void set_valve_state(valve_id_t valve, valve_state_t state);
+void set_motor_state(motor_id_t id, motor_state_t s);
 #endif
