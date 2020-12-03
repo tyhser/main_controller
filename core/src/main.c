@@ -98,6 +98,8 @@ int main(void)
   MX_TIM9_Init();
   MX_TIM4_Init();
   MX_TIM12_Init();
+  MX_TIM3_Init();
+  MX_TIM5_Init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
@@ -108,6 +110,7 @@ int main(void)
     pwm_output(PWM_1, 100, 5);
     pwm_output(PWM_2, 100, 5);
     pwm_output(PWM_3, 100, 5);
+    pwm_output(PWM_4, 100, 5);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -115,9 +118,12 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-      LOG_I("TIM12 CNT:%d", TIM12->CNT);
+      LOG_I("TIM5 CNT:%d", TIM5->CNT);
       HAL_Delay(1000);
-    pwm_output(PWM_1, 100, 5);
+        pwm_output(PWM_1, 100, 5);
+        pwm_output(PWM_2, 100, 5);
+        pwm_output(PWM_3, 100, 5);
+        pwm_output(PWM_4, 100, 5);
     /* USER CODE BEGIN 3 */
 
   }
