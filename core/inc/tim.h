@@ -35,6 +35,11 @@ extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim8;
 
 /* USER CODE BEGIN Private defines */
+#define PWM_1 1
+#define PWM_2 2
+#define PWM_3 3
+#define PWM_4 4
+typedef uint8_t pwm_id_t;
 
 /* USER CODE END Private defines */
 
@@ -43,7 +48,7 @@ void MX_TIM8_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
-void pwm1_output(uint32_t cycle, uint32_t pulse_num);
+void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num);
 /* USER CODE BEGIN Prototypes */
 
 /* USER CODE END Prototypes */
