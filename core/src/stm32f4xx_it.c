@@ -58,6 +58,8 @@
 /* External variables --------------------------------------------------------*/
 extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim9;
+extern TIM_HandleTypeDef htim12;
+extern TIM_HandleTypeDef htim5;
 extern UART_HandleTypeDef huart3;
 /* USER CODE BEGIN EV */
 
@@ -223,6 +225,11 @@ void TIM8_UP_TIM13_IRQHandler(void)
 void TIM1_BRK_TIM9_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&htim9);
+}
+
+void TIM8_BRK_TIM12_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&htim12);
 }
 /* USER CODE BEGIN 1 */
 

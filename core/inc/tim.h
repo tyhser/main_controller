@@ -33,6 +33,10 @@ extern "C" {
 
 extern TIM_HandleTypeDef htim1;
 extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim9;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim12;
 
 /* USER CODE BEGIN Private defines */
 #define PWM_1 1
@@ -45,6 +49,10 @@ typedef uint8_t pwm_id_t;
 
 void MX_TIM1_Init(void);
 void MX_TIM8_Init(void);
+void MX_TIM2_Init(void);
+void MX_TIM9_Init(void);
+void MX_TIM4_Init(void);
+void MX_TIM12_Init(void);
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
