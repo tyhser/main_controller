@@ -187,7 +187,10 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 2 */
-
+void led_toggle(void)
+{
+    HAL_GPIO_TogglePin(led_GPIO_Port, led_Pin);
+}
 /* USER CODE END 2 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -19,8 +19,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "iwdg.h"
 #include "tim.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 #include "syslog.h"
@@ -37,6 +39,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define HARDWARE_VERSION               "V1.0.0"
+#define SOFTWARE_VERSION               "V0.1.0"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -91,29 +95,27 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   //MX_IWDG_Init();
   pwm_output_init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
+  cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
+  syslog_init();
+
   /* USER CODE BEGIN 2 */
-    LOG_I("Init done.");
 #if 0
 	HAL_UART_Receive_IT(&huart1, Rx_Data,14);
 #endif
+    osKernelInitialize();
+    MX_FREERTOS_Init();
+    osKernelStart();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-      HAL_Delay(1000);
-      PWM1(100);
-      PWM2(100);
-      PWM3(100);
-      PWM4(100);
-    /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
@@ -161,10 +163,6 @@ void SystemClock_Config(void)
     Error_Handler();
   }
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.
