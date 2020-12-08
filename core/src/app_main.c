@@ -11,7 +11,7 @@ app_context_t app_context;
 const osThreadAttr_t mainTask_attributes = {
     .name = "mainTask",
     .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 128 * 4
+    .stack_size = 128 * 8
 };
 
 osThreadId_t mainTaskHandle;
@@ -35,10 +35,8 @@ static void mainTask(void *arg)
     app_state_manage_init();
     app_event_init();
     app_context.queue_handle = osMessageQueueNew(APP_QUEUE_SIZE, sizeof(app_event_t), NULL);
-    LOG_I("mainTask queue id:0x%x\r", app_context.queue_handle);
     app_event_register_callback(EVENT_ALL, app_event_handler);
     while (1) {
-        LOG_I("event loop\r");
         if (osOK == osMessageQueueGet(app_context.queue_handle, &event, 0, osWaitForever)) {
            app_event_process(&event);
         }

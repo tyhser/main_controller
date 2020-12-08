@@ -195,4 +195,9 @@ void assert_failed(uint8_t *file, uint32_t line)
 }
 #endif /* USE_FULL_ASSERT */
 
+void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName)
+{
+    printf("stack overflow task id:[%d], taskname:[%s]", xTask, pcTaskName);
+
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

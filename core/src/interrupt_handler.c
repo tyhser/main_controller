@@ -11,7 +11,7 @@ osSemaphoreId_t interrupt_sem = NULL;
 const osThreadAttr_t interruptTask_attributes = {
   .name = "interruptTask",
   .priority = (osPriority_t) osPriorityHigh,
-  .stack_size = 128 * 4
+  .stack_size = 128 * 6
 };
 
 void InterruptTask(void *argument)
@@ -55,7 +55,6 @@ void InterruptTask(void *argument)
                     case INT_MASK_INPUT_6:
                     {
                         id.num = 6;
-                        printf("interrupt input 6\n");
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
@@ -90,10 +89,10 @@ void InterruptTask(void *argument)
                     }
                     break;
                     default:
-                    LOG_I("no interrupt but release semaphore");
                     break;
                 }
             }
+            interrupt_mask = 0;
         }
         osThreadYield();
     }

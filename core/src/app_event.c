@@ -3,6 +3,7 @@
 #include "syslog.h"
 #include "app_main.h"
 #include "string.h"
+#include "motor.h"
 
 static void app_event_node_init(app_event_node_t *event_node)
 {
@@ -153,7 +154,7 @@ void app_event_process(app_event_t *event)
     status_t result;
 
     if (NULL != event) {
-        LOG_I("[app event] app_event_process:0x%x" , event->event_id);
+        LOG_I("[app event] app_event_process:0x%04x" , event->event_id);
 
         result = app_event_invoke(event->event_id, event->parameters);
 
@@ -165,8 +166,6 @@ void app_event_process(app_event_t *event)
 
 void app_event_post_callback(event_t event_id, status_t result, void *parameters)
 {
-    LOG_I("[app event] free event:0x%x params:0x%x", event_id, parameters);
-
     if (NULL != parameters) {
         vPortFree(parameters);
         parameters = NULL;
@@ -176,9 +175,6 @@ void app_event_post_callback(event_t event_id, status_t result, void *parameters
 status_t app_event_handler(event_t event_id, void *parameters)
 {
     event_param_t *event = (event_param_t *)parameters;
-
-    LOG_I("[app event] event:0x%x", event_id);
-
     switch (event_id) {
         case EVENT_APP_TEST:
             LOG_W("[app event] Handle event OK!!");
@@ -186,7 +182,10 @@ status_t app_event_handler(event_t event_id, void *parameters)
         case EVENT_INPUT:
         {
             channel_id_t *id = (channel_id_t *)parameters;
-            LOG_I("received input zero channel:%d", id);
+            LOG_I("received input zero channel:%d", id->num);
+            if (id->num == 6) {
+                motor_run_steps(MOTOR_SYRINGE_ID, 10000);
+            }
         }
         break;
         case EVENT_FAULT:

@@ -26,6 +26,8 @@ typedef enum {
     EVENT_INPUT,
     EVENT_HOME,
     EVENT_FAULT,
+    EVENT_MOTOR_STATE_CHANGE,
+    EVENT_MOTOR_DIRECTION_CHANGE,
     EVENT_ALL,
 } event_t;
 
@@ -42,9 +44,21 @@ typedef struct {
     uint8_t num;
 } channel_id_t;
 
+typedef struct {
+    uint8_t pre_state;
+    uint8_t cur_state;
+} motor_state_change_t;
+
+typedef struct {
+    uint8_t pre_dir;
+    uint8_t cur_dir;
+} motor_direction_change_t;
+
 typedef union {
     state_change_t state_change;            /**<  State change. */
     channel_id_t channel_id;
+    motor_state_change_t motor_state_change;
+    motor_direction_change_t motor_dir_change;
 } event_param_t;
 /*================app event define end================*/
 
