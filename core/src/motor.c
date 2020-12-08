@@ -20,16 +20,16 @@ bool is_motor_zero(motor_id_t motor_id)
     switch (motor_id)
     {
         case MOTOR_SYRINGE_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(home_1_GPIO_Port, home_1_Pin);
+            ret = !(bool)HAL_GPIO_ReadPin(input_1_GPIO_Port, input_1_Pin);
             break;
         case MOTOR_X_AXIS_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(home_2_GPIO_Port, home_2_Pin);
+            ret = !(bool)HAL_GPIO_ReadPin(input_2_GPIO_Port, input_2_Pin);
             break;
         case MOTOR_Z_AXIS_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(home_3_GPIO_Port, home_3_Pin);
+            ret = !(bool)HAL_GPIO_ReadPin(input_3_GPIO_Port, input_3_Pin);
             break;
         case MOTOR_RECEIVED_ID:
-            ret = !(bool)HAL_GPIO_ReadPin(home_4_GPIO_Port, home_4_Pin);
+            ret = !(bool)HAL_GPIO_ReadPin(input_5_GPIO_Port, input_5_Pin);
             break;
         default:
             break;
@@ -208,7 +208,6 @@ void set_valve_state(valve_id_t valve, valve_state_t state)
             break;
     }
 }
-
 
 bool is_motor_id(uint8_t data)
 {

@@ -13,8 +13,10 @@ PROJECT_FILES = $(PROJECT_SRC)/src/main.c \
 				$(PROJECT_SRC)/src/freertos.c \
 				$(PROJECT_SRC)/src/stm32f4xx_hal_timebase_tim.c \
 				$(PROJECT_SRC)/src/dma.c \
-				$(PROJECT_SRC)/src/motor.c
- 
+				$(PROJECT_SRC)/src/motor.c \
+                $(PROJECT_SRC)/src/app_event.c \
+                $(PROJECT_SRC)/src/app_main.c \
+                $(PROJECT_SRC)/src/app_state_controler.c
 
 
 

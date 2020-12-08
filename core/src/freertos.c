@@ -24,6 +24,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "syslog.h"
+#include "app_main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -92,6 +93,7 @@ void vApplicationMallocFailedHook(void)
   */
 void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  app_task_create();
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -108,11 +110,10 @@ void StartDefaultTask(void *argument)
     int i = 0;
   for(;;)
   {
-      LOG_E("%d",i);
-      LOG_E("%d",2*i);
-      i++;
+    //LOG_E("%d",i);
+    //i++;
     led_toggle();
-      osDelay(500);
+    osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
 }
