@@ -173,7 +173,9 @@ void Error_Handler(void);
 #define fault_1_Pin GPIO_PIN_1
 #define fault_1_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
-
+#define INT_PRI_LOW 10
+#define INT_PRI_MIDDLE 9
+#define INT_PRI_HIGH 8
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

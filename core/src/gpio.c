@@ -21,8 +21,15 @@
 #include "gpio.h"
 #include "app_event.h"
 #include "syslog.h"
+#include "main.h"
+#include "cmsis_os.h"
+#include "interrupt_handler.h"
 
 /* USER CODE BEGIN 0 */
+
+volatile uint32_t interrupt_mask;
+extern osThreadId_t interruptTaskHandle;
+extern osSemaphoreId_t interrupt_sem;
 
 /* USER CODE END 0 */
 
@@ -180,19 +187,19 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI1_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI1_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI3_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI3_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI3_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI4_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI4_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI4_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
-  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 5, 0);
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
@@ -204,82 +211,83 @@ void led_toggle(void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    LOG_I("Enter gpio exti callback pin:%d", GPIO_Pin);
+    printf("Enter gpio exti callback pin:%x\n", GPIO_Pin);
     channel_id_t id = {0};
     switch (GPIO_Pin)
     {
     case input_1_Pin:
     {
-        id.num = 1;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_1;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_2_Pin:
     {
-        id.num = 2;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_2;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_3_Pin:
     {
-        id.num = 3;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_3;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     /*because input_4_Pin is duplicate Pin11 so i change to use input_5_Pin*/
 #if 0
     case input_4_Pin:
     {
-        id.num = 4;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_4;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
 #endif
     case input_5_Pin:
     {
-        id.num = 5;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_5;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_6_Pin:
     {
-        id.num = 6;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_6;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_7_Pin:
     {
-        id.num = 7;
-        event_callback(EVENT_INPUT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_INPUT_7;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case fault_1_Pin:
     {
-        id.num = 1;
-        event_callback(EVENT_FAULT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_FAULT_1;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case fault_2_Pin:
-     {
-        id.num = 2;
-        event_callback(EVENT_FAULT, (event_param_t *)&id);
+    {
+        interrupt_mask |= INT_MASK_FAULT_2;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
    case fault_3_Pin:
    {
-        id.num = 3;
-        event_callback(EVENT_FAULT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_FAULT_3;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     case fault_4_Pin:
     {
-        id.num = 4;
-        event_callback(EVENT_FAULT, (event_param_t *)&id);
+        interrupt_mask |= INT_MASK_FAULT_4;
+        osSemaphoreRelease(interrupt_sem);
     }
     break;
     default:
     break;
     }
+    printf("exit exti handler\n");
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

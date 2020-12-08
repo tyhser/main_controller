@@ -25,6 +25,7 @@
 #include "cmsis_os.h"
 #include "syslog.h"
 #include "app_main.h"
+#include "interrupt_handler.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -94,6 +95,7 @@ void vApplicationMallocFailedHook(void)
 void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   app_task_create();
+  interrupt_task_create();
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */
