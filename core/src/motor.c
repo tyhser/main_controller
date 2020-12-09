@@ -64,9 +64,10 @@ bool is_motor_zero(motor_id_t motor_id)
     return ret;
 }
 
-void set_motor_state(motor_id_t id, motor_state_t s)
+bool set_motor_state(motor_id_t id, motor_state_t s)
 {
-    motor_state_t pre_state = s;
+    bool ret = false;
+    motor_state_t pre_state = MOTOR(id).state;
     if (MOTOR(id).state != s) {
         MOTOR(id).state = (s);
 
@@ -75,12 +76,15 @@ void set_motor_state(motor_id_t id, motor_state_t s)
         state_notify.cur_state = s;
         event_callback(EVENT_MOTOR_STATE_CHANGE, (event_param_t *)&state_notify);
         LOG_I("motor[%d] previous state:[%d] current state:[%d]", id, pre_state, s);
+        ret = true;
     }
+    return ret;
 }
 
-void set_motor_direction_state(motor_id_t id, direction_t dir)
+bool set_motor_direction_state(motor_id_t id, direction_t dir)
 {
-    direction_t pre_dir = dir;
+    bool ret = false;
+    direction_t pre_dir = MOTOR(id).direction;
     if (MOTOR(id).direction != dir) {
         MOTOR(id).direction = (dir);
 
@@ -89,7 +93,9 @@ void set_motor_direction_state(motor_id_t id, direction_t dir)
         state_notify.cur_dir = dir;
         event_callback(EVENT_MOTOR_DIRECTION_CHANGE, (event_param_t *)&state_notify);
         LOG_I("motor[%d] previous dir:[%d] current dir:[%d]", id, pre_dir, dir);
+        ret = true;
     }
+    return ret;
 }
 
 void set_motor_direction(motor_id_t motor_id, direction_t direction)
@@ -277,13 +283,48 @@ bool is_motor_id(uint8_t data)
 void syringe_absorb(uint32_t step)
 {
     if (!is_motor_zero(MOTOR_SYRINGE_ID)) {
-        set_motor_direction(MOTOR_SYRINGE_ID, DIRECTION_REV);
-        motor_run_steps(MOTOR_SYRINGE_ID, 10000);
+        set_motor_direction (MOTOR_SYRINGE_ID, DIRECTION_REV);
+        motor_run_steps     (MOTOR_SYRINGE_ID, 10000);
         
     } else {
 
     }
 
+}
+
+void set_subdriver_param(uint8_t denominator)
+{
+    HAL_GPIO_WritePin(m_0_GPIO_Port, m_0_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(m_1_GPIO_Port, m_1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(m_2_GPIO_Port, m_2_Pin, GPIO_PIN_RESET);
+}
+
+void motor_enable_disable(motor_id_t id, bool value)
+{
+    switch (id)
+    {
+        case MOTOR_SYRINGE_ID:
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            break;
+        case MOTOR_X_AXIS_ID:
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            break;
+        case MOTOR_Z_AXIS_ID:
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            break;
+        case MOTOR_RECEIVED_ID:
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            break;
+        default:
+            break;
+    }
+}
+
+void motor_run(motor_id_t id, uint32_t distance, direction_t dir)
+{
+    set_motor_direction (id, DIRECTION_FWD);
+    motor_enable_disable(id, true);
+    motor_run_steps     (id, distance);
 }
 
 status_t motor_event_handler(event_t event_id, void *parameters)

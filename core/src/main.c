@@ -190,8 +190,14 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
     printf("Wrong parameters value: file %s on line %d\r\n", file, line);
+    /* caller stack buffer depth less then CMB_CALL_STACK_MAX_DEPTH (default 16) */
+    uint32_t call_stack[16] = {0};
+    size_t i, depth = 0;
+    depth = cm_backtrace_call_stack(call_stack, sizeof(call_stack), cmb_get_sp());
+    for (i = 0; i < depth; i++) {
+        printf("%08x ", call_stack[i]);
+    }
 }
 #endif /* USE_FULL_ASSERT */
 

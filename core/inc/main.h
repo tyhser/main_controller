@@ -177,7 +177,7 @@ void Error_Handler(void);
 #define INT_PRI_MIDDLE 9
 #define INT_PRI_HIGH 8
 /* USER CODE END Private defines */
-
+#define ASSERT(expr) ((expr) ? (void)0 : assert_failed((uint8_t *)__FILE__, __LINE__))
 #ifdef __cplusplus
 }
 #endif

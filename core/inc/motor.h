@@ -1,6 +1,9 @@
 #ifndef _MOTOR_H
 #define _MOTOR_H
 #include <stdbool.h>
+
+#define DENOMINATOR 32
+
 #define MOTOR_SYRINGE_ID    1
 #define MOTOR_X_AXIS_ID     2
 #define MOTOR_Z_AXIS_ID     3
@@ -35,5 +38,7 @@ void set_motor_direction(motor_id_t motor_id, direction_t direction);
 void motor_stop(motor_id_t id);
 void motor_run_steps(motor_id_t id, uint32_t step);
 void set_valve_state(valve_id_t valve, valve_state_t state);
-void set_motor_state(motor_id_t id, motor_state_t s);
+bool set_motor_state(motor_id_t id, motor_state_t s);
+
+void motor_run(motor_id_t id, uint32_t distance, direction_t dir);
 #endif

@@ -184,7 +184,7 @@ status_t app_event_handler(event_t event_id, void *parameters)
             channel_id_t *id = (channel_id_t *)parameters;
             LOG_I("received input zero channel:%d", id->num);
             if (id->num == 6) {
-                motor_run_steps(MOTOR_SYRINGE_ID, 10000);
+                motor_run(MOTOR_SYRINGE_ID, 1000, DIRECTION_FWD);
             }
         }
         break;
