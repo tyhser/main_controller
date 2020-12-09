@@ -11,7 +11,7 @@ osSemaphoreId_t interrupt_sem = NULL;
 const osThreadAttr_t interruptTask_attributes = {
   .name = "interruptTask",
   .priority = (osPriority_t) osPriorityHigh,
-  .stack_size = 128 * 6
+  .stack_size = 128 * 8
 };
 
 void InterruptTask(void *argument)

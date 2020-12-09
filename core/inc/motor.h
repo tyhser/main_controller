@@ -32,6 +32,7 @@ typedef bool valve_state_t;
 #define MOTOR_STOP 0
 typedef bool motor_state_t;
 
+void motor_init(void);
 bool is_motor_zero(motor_id_t motor_id);
 void motor_zero_handler(uint8_t index);
 void set_motor_direction(motor_id_t motor_id, direction_t direction);

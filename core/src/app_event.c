@@ -184,14 +184,16 @@ status_t app_event_handler(event_t event_id, void *parameters)
             channel_id_t *id = (channel_id_t *)parameters;
             LOG_I("received input zero channel:%d", id->num);
             if (id->num == 6) {
-                motor_run(MOTOR_SYRINGE_ID, 1000, DIRECTION_FWD);
+                set_subdriver_param(0);
+                motor_run(MOTOR_SYRINGE_ID, 10000, DIRECTION_FWD);
+                motor_run(MOTOR_X_AXIS_ID, 10000, DIRECTION_FWD);
             }
         }
         break;
         case EVENT_FAULT:
         {
             channel_id_t *id = (channel_id_t *)parameters;
-            LOG_I("received input fault channel:%d", id);
+            LOG_I("received input fault channel:%d", id->num);
         }
             break;
         default:

@@ -212,7 +212,7 @@ void led_toggle(void)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-    printf("Enter gpio exti callback pin:%x\n", GPIO_Pin);
+    printf("Enter gpio exti callback pin:0x%04x\n", GPIO_Pin);
     channel_id_t id = {0};
     switch (GPIO_Pin)
     {

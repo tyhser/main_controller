@@ -294,9 +294,9 @@ void syringe_absorb(uint32_t step)
 
 void set_subdriver_param(uint8_t denominator)
 {
-    HAL_GPIO_WritePin(m_0_GPIO_Port, m_0_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(m_1_GPIO_Port, m_1_Pin, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(m_2_GPIO_Port, m_2_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(m_0_GPIO_Port, m_0_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(m_1_GPIO_Port, m_1_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(m_2_GPIO_Port, m_2_Pin, GPIO_PIN_SET);
 }
 
 void motor_enable_disable(motor_id_t id, bool value)
@@ -304,16 +304,16 @@ void motor_enable_disable(motor_id_t id, bool value)
     switch (id)
     {
         case MOTOR_SYRINGE_ID:
-            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)(!value)); 
             break;
         case MOTOR_X_AXIS_ID:
-            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)(!value)); 
             break;
         case MOTOR_Z_AXIS_ID:
-            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)(!value)); 
             break;
         case MOTOR_RECEIVED_ID:
-            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)value); 
+            HAL_GPIO_WritePin(enable_1_GPIO_Port, enable_1_Pin, (GPIO_PinState)(!value)); 
             break;
         default:
             break;
@@ -325,6 +325,15 @@ void motor_run(motor_id_t id, uint32_t distance, direction_t dir)
     set_motor_direction (id, DIRECTION_FWD);
     motor_enable_disable(id, true);
     motor_run_steps     (id, distance);
+}
+
+void motor_init(void)
+{
+    motor_enable_disable(MOTOR_SYRINGE_ID, false);
+    motor_enable_disable(MOTOR_X_AXIS_ID, false);
+    motor_enable_disable(MOTOR_Z_AXIS_ID, false);
+    motor_enable_disable(MOTOR_RECEIVED_ID, false);
+    set_subdriver_param(32);
 }
 
 status_t motor_event_handler(event_t event_id, void *parameters)

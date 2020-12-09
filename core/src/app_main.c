@@ -11,7 +11,7 @@ app_context_t app_context;
 const osThreadAttr_t mainTask_attributes = {
     .name = "mainTask",
     .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 128 * 8
+    .stack_size = 128 * 10
 };
 
 osThreadId_t mainTaskHandle;
@@ -30,7 +30,7 @@ void event_callback(event_t event_id,event_param_t *param)
 static void mainTask(void *arg)
 {
     app_event_t event;
-    LOG_I("Enter main task\r");
+    LOG_I("Enter main task");
     memset(&app_context, 0, sizeof(app_context_t));
     app_state_manage_init();
     app_event_init();
@@ -45,6 +45,5 @@ static void mainTask(void *arg)
 
 void app_task_create(void)
 {
-    LOG_I("create app task\r");
     mainTaskHandle = osThreadNew(mainTask, NULL, &mainTask_attributes);
 }

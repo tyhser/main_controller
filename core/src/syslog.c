@@ -113,7 +113,8 @@ static int log_queue_receive(syslog_buffer_t **log_buffer)
 
 static void print_normal_log(const log_message_t *normal_log_message)
 {
-    if (normal_log_message->print_level != PRINT_LEVEL_INFO) {
+    //if (normal_log_message->print_level != PRINT_LEVEL_INFO)
+    {
         printf("[%s/ T: %d F: %s L: %d]:\t\t",
                change_level_to_string(normal_log_message->print_level),
                (unsigned int)normal_log_message->timestamp,
@@ -182,7 +183,7 @@ static void vprint_module_log(const char *func,
                 uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
                 if (syslog_context.syslog_init_done) {
                     /* gpt init done, time can be printed  */
-                    printf("[%s/ T: %d F: %s L: %d]:\t\t",
+                    printf("[%s/ T: %d F: %s L: %d]: ",
                            change_level_to_string(level),
                            osKernelGetTickCount(),
                            func,

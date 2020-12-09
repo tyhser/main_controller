@@ -38,6 +38,7 @@ extern IWDG_HandleTypeDef hiwdg;
 /* USER CODE END Private defines */
 
 void MX_IWDG_Init(void);
+void feed_dog(void);
 
 /* USER CODE BEGIN Prototypes */
 

@@ -109,13 +109,13 @@ void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
-    int i = 0;
+  uint32_t i = 0;
   for(;;)
   {
-    //LOG_E("%d",i);
-    //i++;
+    i++;
+    feed_dog();
     led_toggle();
-    osDelay(100);
+    osDelay(300);
   }
   /* USER CODE END StartDefaultTask */
 }
