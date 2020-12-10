@@ -26,6 +26,7 @@
 #include "usart.h"
 #include "gpio.h"
 #include "syslog.h"
+#include "motor.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */

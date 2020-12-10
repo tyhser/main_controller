@@ -1,6 +1,7 @@
 #ifndef _MOTOR_H
 #define _MOTOR_H
 #include <stdbool.h>
+#include "app_event.h"
 
 #define DENOMINATOR 32
 
@@ -42,4 +43,6 @@ void set_valve_state(valve_id_t valve, valve_state_t state);
 bool set_motor_state(motor_id_t id, motor_state_t s);
 
 void motor_run(motor_id_t id, uint32_t distance, direction_t dir);
+
+status_t motor_event_handler(event_t event_id, void *parameters);
 #endif

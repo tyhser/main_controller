@@ -4,6 +4,7 @@
 #include "syslog.h"
 #include "string.h"
 #include "app_state_controler.h"
+#include "motor.h"
 
 #define APP_QUEUE_SIZE 30
 app_context_t app_context;
@@ -36,6 +37,7 @@ static void mainTask(void *arg)
     app_event_init();
     app_context.queue_handle = osMessageQueueNew(APP_QUEUE_SIZE, sizeof(app_event_t), NULL);
     app_event_register_callback(EVENT_ALL, app_event_handler);
+    app_event_register_callback(EVENT_ALL, motor_event_handler);
     while (1) {
         if (osOK == osMessageQueueGet(app_context.queue_handle, &event, 0, osWaitForever)) {
            app_event_process(&event);

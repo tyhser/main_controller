@@ -646,6 +646,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim8);
         __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
         set_motor_state(MOTOR_SYRINGE_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_SYRINGE_ID, false);
     }
     else if (htim == &htim9) {
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
@@ -653,6 +654,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim9);
         __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
         set_motor_state(MOTOR_X_AXIS_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_X_AXIS_ID, false);
     }
     else if (htim == &htim12) {
         HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
@@ -660,6 +662,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim12);
         __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
         set_motor_state(MOTOR_Z_AXIS_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_Z_AXIS_ID, false);
     }
     else if (htim == &htim5) {
         HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
@@ -667,6 +670,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim5);
         __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
         set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_RECEIVED_ID, false);
     }
     else if (htim->Instance == TIM6) {
         HAL_IncTick();

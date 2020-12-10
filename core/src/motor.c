@@ -10,6 +10,7 @@ struct motor {
     motor_state_t state;
     direction_t direction;
     bool zero;
+    bool fault;
 } motor_context[4];
 
 #define MOTOR(i) (motor_context[(i)-1])
@@ -38,6 +39,30 @@ void motor_zero_handler(uint8_t index)
     if (MOTOR(id).state == MOTOR_RUN && MOTOR(id).direction == DIRECTION_FWD) {
        motor_stop(id);
     }
+}
+
+void motor_fault_handler(uint8_t index)
+{
+    motor_id_t id;
+    switch (index)
+    {
+        case 1:
+            id = MOTOR_SYRINGE_ID;
+        break;
+        case 2:
+            id = MOTOR_X_AXIS_ID;
+        break;
+        case 3:
+            id = MOTOR_Z_AXIS_ID;
+        break;
+        case 5:
+            id = MOTOR_RECEIVED_ID;
+        break;
+        default:
+        break;
+    }
+    MOTOR(id).fault = true;
+    motor_stop(id);
 }
 
 bool is_motor_zero(motor_id_t motor_id)
@@ -75,7 +100,7 @@ bool set_motor_state(motor_id_t id, motor_state_t s)
         state_notify.pre_state = pre_state;
         state_notify.cur_state = s;
         event_callback(EVENT_MOTOR_STATE_CHANGE, (event_param_t *)&state_notify);
-        LOG_I("motor[%d] previous state:[%d] current state:[%d]", id, pre_state, s);
+        LOG_I("[motor]motor[%d] previous state:[%d] current state:[%d]", id, pre_state, s);
         ret = true;
     }
     return ret;
@@ -92,7 +117,7 @@ bool set_motor_direction_state(motor_id_t id, direction_t dir)
         state_notify.pre_dir = pre_dir;
         state_notify.cur_dir = dir;
         event_callback(EVENT_MOTOR_DIRECTION_CHANGE, (event_param_t *)&state_notify);
-        LOG_I("motor[%d] previous dir:[%d] current dir:[%d]", id, pre_dir, dir);
+        LOG_I("[motor]motor[%d] previous dir:[%d] current dir:[%d]", id, pre_dir, dir);
         ret = true;
     }
     return ret;
@@ -101,7 +126,7 @@ bool set_motor_direction_state(motor_id_t id, direction_t dir)
 void set_motor_direction(motor_id_t motor_id, direction_t direction)
 {
     bool error = false;
-    LOG_I("set motor %d direction %d", motor_id, direction);
+    LOG_I("[motor]set motor %d direction %d", motor_id, direction);
     if (MOTOR(motor_id).state == MOTOR_RUN) {
         motor_stop(motor_id);
     }
@@ -163,11 +188,10 @@ void set_motor_direction(motor_id_t motor_id, direction_t direction)
     }
 }
 
-
 void motor_run_steps(motor_id_t id, uint32_t step)
 {
     bool error = false;
-    LOG_I("motor[%d] start to run [%d]steps", id, step);
+    LOG_I("[motor]motor[%d] start to run [%d]steps", id, step);
     switch (id)
     {
         case MOTOR_SYRINGE_ID:
@@ -205,27 +229,31 @@ void motor_run_steps(motor_id_t id, uint32_t step)
 void motor_stop(motor_id_t id)
 {
     bool error = false;
-    LOG_I("stop motor[%d]", id);
+    LOG_I("[motor]stop motor[%d]", id);
     switch (id)
     {
         case MOTOR_SYRINGE_ID:
         {
             pwm_stop_output(PWM_1);
+            motor_enable_disable(id, false);
         }
         break;
         case MOTOR_X_AXIS_ID:
         {
             pwm_stop_output(PWM_2);
+            motor_enable_disable(id, false);
         }
         break;
         case MOTOR_Z_AXIS_ID:
         {
             pwm_stop_output(PWM_3);
+            motor_enable_disable(id, false);
         }
         break;
         case MOTOR_RECEIVED_ID:
         {
             pwm_stop_output(PWM_4);
+            motor_enable_disable(id, false);
         }
         break;
         default:
@@ -275,7 +303,7 @@ bool is_motor_id(uint8_t data)
     if (data < MOTOR_END_ID && data > 0) {
         return true;
     } else {
-        LOG_I("this is not a motor id");
+        LOG_I("[motor]this is not a motor id");
         return false;
     }
 }
@@ -334,6 +362,23 @@ void motor_init(void)
     motor_enable_disable(MOTOR_Z_AXIS_ID, false);
     motor_enable_disable(MOTOR_RECEIVED_ID, false);
     set_subdriver_param(32);
+    MOTOR(MOTOR_SYRINGE_ID).fault = false;
+    MOTOR(MOTOR_X_AXIS_ID).fault = false;
+    MOTOR(MOTOR_Z_AXIS_ID).fault = false;
+    MOTOR(MOTOR_RECEIVED_ID).fault = false;
+
+    MOTOR(MOTOR_SYRINGE_ID).state  = MOTOR_STOP;
+    MOTOR(MOTOR_X_AXIS_ID).state   = MOTOR_STOP;
+    MOTOR(MOTOR_Z_AXIS_ID).state   = MOTOR_STOP;
+    MOTOR(MOTOR_RECEIVED_ID).state = MOTOR_STOP;
+
+}
+
+void motor_return_zero(motor_id_t id)
+{
+    motor_enable_disable(id, true);
+    set_motor_direction(id, DIRECTION_REV);
+    motor_run_steps(id, 100000);
 }
 
 status_t motor_event_handler(event_t event_id, void *parameters)
@@ -342,13 +387,19 @@ status_t motor_event_handler(event_t event_id, void *parameters)
     switch (event_id)
     {
         case EVENT_INPUT:
-         {
+        {
             channel_id_t *id = (channel_id_t *)parameters;
+            LOG_I("[motor]Channel %d back to zero", id->num);
             motor_zero_handler(id->num);
-
-
-         }
-         break;
+        }
+        break;
+        case EVENT_FAULT:
+        {
+            channel_id_t *id = (channel_id_t *)parameters;
+            LOG_I("[motor]Channel:%d fault", id->num);
+            motor_fault_handler(id->num);
+        }
+        break;
 
     }
 }
