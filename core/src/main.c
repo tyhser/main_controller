@@ -19,11 +19,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "iwdg.h"
 #include "tim.h"
+#include "dma.h"
 #include "usart.h"
 #include "gpio.h"
 #include "syslog.h"
+#include "motor.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -37,6 +40,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+#define HARDWARE_VERSION               "V1.0.0"
+#define SOFTWARE_VERSION               "V0.1.0"
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -91,29 +96,28 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_IWDG_Init();
+  MX_DMA_Init();
+  MX_IWDG_Init();
   pwm_output_init();
+  motor_init();
   MX_USART1_UART_Init();
   MX_USART3_UART_Init();
+  cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
+  syslog_init();
+
   /* USER CODE BEGIN 2 */
-    LOG_I("Init done.");
 #if 0
 	HAL_UART_Receive_IT(&huart1, Rx_Data,14);
 #endif
+    osKernelInitialize();
+    MX_FREERTOS_Init();
+    osKernelStart();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-      HAL_Delay(1000);
-      PWM1(100);
-      PWM2(100);
-      PWM3(100);
-      PWM4(100);
-    /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
@@ -162,10 +166,6 @@ void SystemClock_Config(void)
   }
 }
 
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
-
 /**
   * @brief  This function is executed in case of error occurrence.
   * @retval None
@@ -177,6 +177,7 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
+      printf("Error occure");
   }
   /* USER CODE END Error_Handler_Debug */
 }
@@ -191,11 +192,20 @@ void Error_Handler(void)
   */
 void assert_failed(uint8_t *file, uint32_t line)
 {
-  /* USER CODE BEGIN 6 */
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-  /* USER CODE END 6 */
+    printf("Wrong parameters value: file %s on line %d\r\n", file, line);
+    /* caller stack buffer depth less then CMB_CALL_STACK_MAX_DEPTH (default 16) */
+    uint32_t call_stack[16] = {0};
+    size_t i, depth = 0;
+    depth = cm_backtrace_call_stack(call_stack, sizeof(call_stack), cmb_get_sp());
+    for (i = 0; i < depth; i++) {
+        printf("%08x ", call_stack[i]);
+    }
 }
 #endif /* USE_FULL_ASSERT */
 
+void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName)
+{
+    printf("stack overflow task id:[%d], taskname:[%s]", xTask, pcTaskName);
+
+}
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

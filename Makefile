@@ -71,6 +71,8 @@ endif
 
 include $(PROJ_PATH)/core/module.mk
 include $(PROJ_PATH)/drivers/module.mk
+include $(PROJ_PATH)/Middlewares/module.mk
+include $(PROJ_PATH)/CmBacktrace/module.mk
 
 # link script
 LDSCRIPT = STM32F407VETx_FLASH.ld
@@ -107,7 +109,6 @@ clean:
 project_clen:
 	rm -rf $(BUILD_DIR)/core
 flash:
-	st-flash --reset write build/main_controller.bin 0x8000000||exit 0
 	st-flash --reset write build/main_controller.bin 0x8000000||exit 1
 	@echo Flash done.
 

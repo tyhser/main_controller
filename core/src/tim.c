@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
 #include "syslog.h"
+#include "motor.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -386,7 +387,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_TIM5_CLK_ENABLE();
 
     /* TIM5 interrupt Init */
-    HAL_NVIC_SetPriority(TIM5_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM5_IRQn, INT_PRI_MIDDLE, 0);
     HAL_NVIC_EnableIRQ(TIM5_IRQn);
   /* USER CODE BEGIN TIM5_MspInit 1 */
 
@@ -401,7 +402,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_TIM8_CLK_ENABLE();
 
     /* TIM8 interrupt Init */
-    HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM8_UP_TIM13_IRQn, INT_PRI_MIDDLE, 0);
     HAL_NVIC_EnableIRQ(TIM8_UP_TIM13_IRQn);
   /* USER CODE BEGIN TIM8_MspInit 1 */
 
@@ -415,7 +416,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     /* TIM9 clock enable */
     __HAL_RCC_TIM9_CLK_ENABLE();
     /* TIM9 interrupt Init */
-    HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM1_BRK_TIM9_IRQn, INT_PRI_MIDDLE, 0);
     HAL_NVIC_EnableIRQ(TIM1_BRK_TIM9_IRQn);
   /* USER CODE BEGIN TIM9_MspInit 1 */
 
@@ -430,7 +431,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
     __HAL_RCC_TIM12_CLK_ENABLE();
 
     /* TIM12 interrupt Init */
-    HAL_NVIC_SetPriority(TIM8_BRK_TIM12_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(TIM8_BRK_TIM12_IRQn, INT_PRI_MIDDLE, 0);
     HAL_NVIC_EnableIRQ(TIM8_BRK_TIM12_IRQn);
   /* USER CODE BEGIN TIM12_MspInit 1 */
 
@@ -645,6 +646,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim8);
         __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
         set_motor_state(MOTOR_SYRINGE_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_SYRINGE_ID, false);
     }
     else if (htim == &htim9) {
         HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
@@ -652,6 +654,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim9);
         __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
         set_motor_state(MOTOR_X_AXIS_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_X_AXIS_ID, false);
     }
     else if (htim == &htim12) {
         HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
@@ -659,6 +662,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim12);
         __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
         set_motor_state(MOTOR_Z_AXIS_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_Z_AXIS_ID, false);
     }
     else if (htim == &htim5) {
         HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
@@ -666,6 +670,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         HAL_TIM_Base_Stop_IT(&htim5);
         __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
         set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
+        motor_enable_disable(MOTOR_RECEIVED_ID, false);
+    }
+    else if (htim->Instance == TIM6) {
+        HAL_IncTick();
     }
 }
 

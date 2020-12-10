@@ -10,9 +10,14 @@ PROJECT_FILES = $(PROJECT_SRC)/src/main.c \
 				$(PROJECT_SRC)/src/stm32f4xx_hal_msp.c \
 				$(PROJECT_SRC)/src/system_stm32f4xx.c \
 				$(PROJECT_SRC)/src/syslog.c \
-
-#				$(PROJECT_SRC)/src/motor.c
- 
+				$(PROJECT_SRC)/src/freertos.c \
+				$(PROJECT_SRC)/src/stm32f4xx_hal_timebase_tim.c \
+				$(PROJECT_SRC)/src/dma.c \
+				$(PROJECT_SRC)/src/motor.c \
+                $(PROJECT_SRC)/src/app_event.c \
+                $(PROJECT_SRC)/src/app_main.c \
+                $(PROJECT_SRC)/src/app_state_controler.c \
+                $(PROJECT_SRC)/src/interrupt_handler.c
 
 
 
