@@ -8,7 +8,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "semphr.h"
-#include "cmsis_os2.h"
+#include "cmsis_os.h"
 
 void (*syslog_assert_hook)(const char* expr, const char* func, uint32_t line);
 

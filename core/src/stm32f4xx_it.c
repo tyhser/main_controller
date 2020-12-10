@@ -21,6 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
+#include "cmsis_os.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -172,52 +173,64 @@ void DebugMon_Handler(void)
   */
 void USART3_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART3_IRQn 0 */
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
 
-  /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
-  /* USER CODE BEGIN USART3_IRQn 1 */
 
-  /* USER CODE END USART3_IRQn 1 */
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 void TIM8_UP_TIM13_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_TIM_IRQHandler(&htim8);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 void TIM1_BRK_TIM9_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_TIM_IRQHandler(&htim9);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 void TIM8_BRK_TIM12_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_TIM_IRQHandler(&htim12);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 /**
   * @brief This function handles TIM5 global interrupt.
   */
 void TIM5_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM5_IRQn 0 */
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
 
-  /* USER CODE END TIM5_IRQn 0 */
   HAL_TIM_IRQHandler(&htim5);
-  /* USER CODE BEGIN TIM5_IRQn 1 */
 
-  /* USER CODE END TIM5_IRQn 1 */
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 void TIM6_DAC_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM6_DAC_IRQn 0 */
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
 
-  /* USER CODE END TIM6_DAC_IRQn 0 */
   HAL_TIM_IRQHandler(&htim6);
-  /* USER CODE BEGIN TIM6_DAC_IRQn 1 */
 
-  /* USER CODE END TIM6_DAC_IRQn 1 */
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -225,9 +238,9 @@ void TIM6_DAC_IRQHandler(void)
   */
 void DMA2_Stream7_IRQHandler(void)
 {
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 0 */
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
 
-  /* USER CODE END DMA2_Stream7_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_tx);
   /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
   huart1.gState = HAL_UART_STATE_READY;
@@ -236,7 +249,8 @@ void DMA2_Stream7_IRQHandler(void)
   __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_HTIF3_7);
   __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_FEIF3_7 );
   __HAL_UNLOCK(&hdma_usart1_tx); 
-  /* USER CODE END DMA2_Stream7_IRQn 1 */
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -244,7 +258,11 @@ void DMA2_Stream7_IRQHandler(void)
   */
 void EXTI1_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -252,7 +270,12 @@ void EXTI1_IRQHandler(void)
   */
 void EXTI3_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -260,7 +283,12 @@ void EXTI3_IRQHandler(void)
   */
 void EXTI4_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -268,10 +296,15 @@ void EXTI4_IRQHandler(void)
   */
 void EXTI9_5_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_6);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_7);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /**
@@ -279,12 +312,17 @@ void EXTI9_5_IRQHandler(void)
   */
 void EXTI15_10_IRQHandler(void)
 {
+  UBaseType_t uxSavedInterruptStatus;
+  uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_13);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_14);
   HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_15);
+
+  portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
