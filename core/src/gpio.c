@@ -128,55 +128,72 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PE1 */
+  /*Fault Pin*/
+  /*Configure GPIO pins : PE1 fault1*/
   GPIO_InitStruct.Pin = GPIO_PIN_1;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-    /*INPUT Pin*/
- /*Configure GPIO pin : PE15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB10 PB11*/
-  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+  /*Configure GPIO pins : PB6 fault2*/
+  GPIO_InitStruct.Pin = GPIO_PIN_6;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD11 PD12 PD13 PD14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
+  /*Configure GPIO pins : PD3 fault3*/
+  GPIO_InitStruct.Pin = GPIO_PIN_3;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PC9 fault4*/
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Fault Pin end*/
+
+    /*INPUT Pin*/
+ /*Configure GPIO pin : PE15 input3*/
+  GPIO_InitStruct.Pin = GPIO_PIN_15;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PB10 PB11 input1 input2*/
+  GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PD12 PD13 PD14 input5 input6 input7*/
+  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
     /*INPUT Pin end*/
 
-  /*Configure GPIO pins : PB6 PB7 */
-  GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+  /*home Pin*/
+  /*Configure GPIO pins : PB7 home1*/
+  GPIO_InitStruct.Pin = GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : PD11 PD3 PD4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_3|GPIO_PIN_4;
+  /*Configure GPIO pins : PD4 PD15 home2 home 4*/
+  GPIO_InitStruct.Pin = GPIO_PIN_15|GPIO_PIN_4;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PC9 */
-  GPIO_InitStruct.Pin = GPIO_PIN_9;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PA8 */
+  /*Configure GPIO pin : PA8 home3*/
   GPIO_InitStruct.Pin = GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /*home Pin end*/
 
   /*Configure GPIO pins : PDPin PDPin PDPin PDPin
                            PDPin */
@@ -203,6 +220,7 @@ void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, INT_PRI_MIDDLE, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
+  interrupt_mask = 0U;
 }
 
 void led_toggle(void)
@@ -217,19 +235,30 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     {
     case input_1_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_1;
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_11)) {
+            interrupt_mask |= INT_MASK_ZERO_1_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_1_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
-    case input_2_Pin:
-    {
-        interrupt_mask |= INT_MASK_INPUT_2;
+    case input_2_Pin: {
+        if (HAL_GPIO_ReadPin(GPIOB, GPIO_PIN_10)) {
+            interrupt_mask |= INT_MASK_ZERO_2_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_2_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_3_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_3;
+        if (HAL_GPIO_ReadPin(GPIOE, GPIO_PIN_15)) {
+            interrupt_mask |= INT_MASK_ZERO_3_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_3_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
@@ -237,26 +266,42 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 #if 0
     case input_4_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_4;
+        if (HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_11)) {
+            interrupt_mask |= INT_MASK_ZERO_4_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_4_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
 #endif
     case input_5_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_5;
+        if (HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_12)) {
+            interrupt_mask |= INT_MASK_ZERO_5_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_5_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_6_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_6;
+        if (HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_13)) {
+            interrupt_mask |= INT_MASK_ZERO_6_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_6_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;
     case input_7_Pin:
     {
-        interrupt_mask |= INT_MASK_INPUT_7;
+        if (HAL_GPIO_ReadPin(GPIOD, GPIO_PIN_14)) {
+            interrupt_mask |= INT_MASK_ZERO_7_OFF;
+        } else {
+            interrupt_mask |= INT_MASK_ZERO_7_ON;
+        }
         osSemaphoreRelease(interrupt_sem);
     }
     break;

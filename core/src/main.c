@@ -104,7 +104,6 @@ int main(void)
   MX_USART3_UART_Init();
   cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
   syslog_init();
-
   /* USER CODE BEGIN 2 */
 #if 0
 	HAL_UART_Receive_IT(&huart1, Rx_Data,14);

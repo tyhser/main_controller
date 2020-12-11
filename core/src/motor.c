@@ -15,7 +15,7 @@ struct motor {
 
 #define MOTOR(i) (motor_context[(i)-1])
 
-void motor_zero_handler(uint8_t index)
+void motor_zero_handler(uint8_t index, uint8_t on_off)
 {
     motor_id_t id;
     switch (index)
@@ -35,10 +35,28 @@ void motor_zero_handler(uint8_t index)
         default:
         break;
     }
-    MOTOR(id).zero = true;
-    if (MOTOR(id).state == MOTOR_RUN && MOTOR(id).direction == DIRECTION_FWD) {
+    MOTOR(id).zero = on_off;
+    if (MOTOR(id).state == MOTOR_RUN && MOTOR(id).direction == DIRECTION_REV && MOTOR(id).zero == true) {
        motor_stop(id);
     }
+#if 1
+    static direction_t dir = DIRECTION_REV;
+    set_motor_direction(MOTOR_SYRINGE_ID, dir);
+
+    if (MOTOR(MOTOR_SYRINGE_ID).state == MOTOR_STOP && id != MOTOR_SYRINGE_ID && is_motor_zero(MOTOR_SYRINGE_ID)) {
+        dir = !dir;
+        motor_enable_disable(MOTOR_SYRINGE_ID, true);
+        motor_run_steps(MOTOR_SYRINGE_ID, 10000);
+    }
+    static int i = 0;
+    if ((MOTOR(MOTOR_SYRINGE_ID).state == MOTOR_STOP) && (id != MOTOR_SYRINGE_ID)) {
+        LOG_I("trigger run");
+        LOG_I("i=%d", i);
+        motor_enable_disable(MOTOR_SYRINGE_ID, true);
+        motor_run_steps(MOTOR_SYRINGE_ID, 10000);
+        i = 1;
+    }
+#endif
 }
 
 void motor_fault_handler(uint8_t index)
@@ -322,9 +340,41 @@ void syringe_absorb(uint32_t step)
 
 void set_subdriver_param(uint8_t denominator)
 {
-    HAL_GPIO_WritePin(m_0_GPIO_Port, m_0_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(m_1_GPIO_Port, m_1_Pin, GPIO_PIN_SET);
-    HAL_GPIO_WritePin(m_2_GPIO_Port, m_2_Pin, GPIO_PIN_SET);
+    GPIO_PinState m0 = GPIO_PIN_RESET;
+    GPIO_PinState m1 = GPIO_PIN_RESET;
+    GPIO_PinState m2 = GPIO_PIN_RESET;
+
+    if (denominator == 32) {
+        m0 = GPIO_PIN_SET;
+        m1 = GPIO_PIN_RESET;
+        m2 = GPIO_PIN_SET;
+    } else if (denominator == 16) {
+        m0 = GPIO_PIN_RESET;
+        m1 = GPIO_PIN_RESET;
+        m2 = GPIO_PIN_SET;
+    } else if (denominator == 8) {
+        m0 = GPIO_PIN_SET;
+        m1 = GPIO_PIN_SET;
+        m2 = GPIO_PIN_RESET;
+    } else if (denominator == 4) {
+        m0 = GPIO_PIN_RESET;
+        m1 = GPIO_PIN_SET;
+        m2 = GPIO_PIN_RESET;
+    } else if (denominator == 2) {
+        m0 = GPIO_PIN_SET;
+        m1 = GPIO_PIN_RESET;
+        m2 = GPIO_PIN_RESET;
+    } else if (denominator == 1) {
+        m0 = GPIO_PIN_RESET;
+        m1 = GPIO_PIN_RESET;
+        m2 = GPIO_PIN_RESET;
+    } else {
+        LOG_I("Unknow motor driver denominator");
+        return;
+    }
+    HAL_GPIO_WritePin(m_0_GPIO_Port, m_0_Pin, m0);
+    HAL_GPIO_WritePin(m_1_GPIO_Port, m_1_Pin, m1);
+    HAL_GPIO_WritePin(m_2_GPIO_Port, m_2_Pin, m2);
 }
 
 void motor_enable_disable(motor_id_t id, bool value)
@@ -389,8 +439,8 @@ status_t motor_event_handler(event_t event_id, void *parameters)
         case EVENT_INPUT:
         {
             channel_id_t *id = (channel_id_t *)parameters;
-            LOG_I("[motor]Channel %d back to zero", id->num);
-            motor_zero_handler(id->num);
+            LOG_I("[motor]Channel %d zero on off:[%d]", id->num, id->on_off);
+            motor_zero_handler(id->num, id->on_off);
         }
         break;
         case EVENT_FAULT:

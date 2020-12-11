@@ -42,6 +42,7 @@ typedef struct {
 
 typedef struct {
     uint8_t num;
+    uint8_t on_off;
 } channel_id_t;
 
 typedef struct {

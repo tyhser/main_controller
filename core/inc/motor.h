@@ -35,7 +35,7 @@ typedef bool motor_state_t;
 
 void motor_init(void);
 bool is_motor_zero(motor_id_t motor_id);
-void motor_zero_handler(uint8_t index);
+void motor_zero_handler(uint8_t index, uint8_t on_off);
 void set_motor_direction(motor_id_t motor_id, direction_t direction);
 void motor_stop(motor_id_t id);
 void motor_run_steps(motor_id_t id, uint32_t step);

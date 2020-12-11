@@ -112,7 +112,6 @@ void StartDefaultTask(void *argument)
   uint32_t i = 0;
   for(;;)
   {
-    i++;
     feed_dog();
     led_toggle();
     osDelay(300);

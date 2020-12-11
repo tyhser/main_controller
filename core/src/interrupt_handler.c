@@ -3,7 +3,7 @@
 #include "interrupt_handler.h"
 #include "app_event.h"
 
-volatile uint32_t interrupt_mask = 0;
+volatile uint32_t interrupt_mask = 0U;
 
 osThreadId_t interruptTaskHandle = NULL;
 osSemaphoreId_t interrupt_sem = NULL;
@@ -22,45 +22,87 @@ void InterruptTask(void *argument)
             for (int i = 0; i < 8*sizeof(interrupt_mask); i++) {
                 switch ((1<<i) & interrupt_mask)
                 {
-                    case INT_MASK_INPUT_1:
+                    case INT_MASK_ZERO_1_OFF:
+                    case INT_MASK_ZERO_1_ON:
                     {
                         id.num = 1;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_1_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_2:
+                    case INT_MASK_ZERO_2_OFF:
+                    case INT_MASK_ZERO_2_ON:
                     {
                         id.num = 2;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_2_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_3:
+                    case INT_MASK_ZERO_3_OFF:
+                    case INT_MASK_ZERO_3_ON:
                     {
                         id.num = 3;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_3_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_4:
+                    case INT_MASK_ZERO_4_OFF:
+                    case INT_MASK_ZERO_4_ON:
                     {
                         id.num = 4;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_4_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_5:
+                    case INT_MASK_ZERO_5_OFF:
+                    case INT_MASK_ZERO_5_ON:
                     {
                         id.num = 5;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_5_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_6:
+                    case INT_MASK_ZERO_6_OFF:
+                    case INT_MASK_ZERO_6_ON:
                     {
                         id.num = 6;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_6_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
-                    case INT_MASK_INPUT_7:
+                    case INT_MASK_ZERO_7_OFF:
+                    case INT_MASK_ZERO_7_ON:
                     {
                         id.num = 7;
+                        if (((1<<i) & interrupt_mask) == INT_MASK_ZERO_7_ON) {
+                            id.on_off = 1;
+                        } else {
+                            id.on_off = 0;
+                        }
                         event_callback(EVENT_INPUT, (event_param_t *)&id);
                     }
                     break;
@@ -92,7 +134,9 @@ void InterruptTask(void *argument)
                     break;
                 }
             }
+            taskENTER_CRITICAL();
             interrupt_mask = 0;
+            taskEXIT_CRITICAL();
         }
         osThreadYield();
     }
