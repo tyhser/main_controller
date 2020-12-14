@@ -68,6 +68,7 @@ void StartDefaultTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
+void modbus_task_create(void);
 /* Hook prototypes */
 void vApplicationMallocFailedHook(void);
 
@@ -96,6 +97,7 @@ void MX_FREERTOS_Init(void) {
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
   app_task_create();
   interrupt_task_create();
+  modbus_task_create();
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */

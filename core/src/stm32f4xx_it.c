@@ -57,6 +57,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern TIM_HandleTypeDef htim7;
 extern TIM_HandleTypeDef htim8;
 extern TIM_HandleTypeDef htim9;
 extern TIM_HandleTypeDef htim12;
@@ -175,7 +176,8 @@ void USART3_IRQHandler(void)
 {
   UBaseType_t uxSavedInterruptStatus;
   uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
-
+  extern void vUSARTHandler(void);
+  vUSARTHandler();
   HAL_UART_IRQHandler(&huart3);
 
   portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
@@ -232,6 +234,11 @@ void TIM6_DAC_IRQHandler(void)
 
   portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
+
+void TIM7_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&htim7);
+} 
 
 /**
   * @brief This function handles DMA2 stream7 global interrupt.

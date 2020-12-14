@@ -30,16 +30,14 @@
 
 /* ----------------------- System includes ----------------------------------*/
 #include <stdlib.h>
-#include <FreeRTOS.h>
-#include <task.h>
-#include <semphr.h>
+#include "cmsis_os.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
 #include "mbport.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
-#include <intrinsics.h>
+//#include <intrinsics.h>
 
 /* ----------------------- Variables ----------------------------------------*/
 static BOOL     bIsWithinException = FALSE;

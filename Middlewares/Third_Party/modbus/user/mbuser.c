@@ -1,53 +1,29 @@
-/* 
- * FreeModbus Libary: A portable Modbus implementation for Modbus ASCII/RTU.
- * Copyright (c) 2006-2018 Christian Walter <cwalter@embedded-solutions.at>
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. The name of the author may not be used to endorse or promote products
- *    derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- */
-
 /* ----------------------- System includes ----------------------------------*/
 #include "stdlib.h"
 #include "string.h"
+#include "syslog.h"
 
 /* ----------------------- Platform includes --------------------------------*/
 #include "port.h"
 
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "mb.h"
-#include "mbrtu.h"
+#include "mbuser.h"
 #include "mbframe.h"
 
 #include "mbcrc.h"
 #include "mbport.h"
 
 /* ----------------------- Defines ------------------------------------------*/
-#define MB_SER_PDU_SIZE_MIN     4       /*!< Minimum size of a Modbus RTU frame. */
-#define MB_SER_PDU_SIZE_MAX     256     /*!< Maximum size of a Modbus RTU frame. */
-#define MB_SER_PDU_SIZE_CRC     2       /*!< Size of CRC field in PDU. */
+#define MB_SER_PDU_SIZE_MIN     14       /*!< Minimum size of a Modbus USER frame. */
+#define MB_SER_PDU_SIZE_MAX     14     /*!< Maximum size of a Modbus USER frame. */
+#define MB_SER_PDU_SIZE_CRC     0      /*!< Size of CRC field in PDU. */
 #define MB_SER_PDU_ADDR_OFF     0       /*!< Offset of slave address in Ser-PDU. */
-#define MB_SER_PDU_PDU_OFF      1       /*!< Offset of Modbus-PDU in Ser-PDU. */
+
+#define MB_SER_PDU_PDU_OFF      2      /*!< Offset of Modbus-PDU in Ser-PDU. */
+
+#define MB_SER_PDU_HAED_SIZE     2
+#define MB_SER_PDU_TAIL_SIZE     2
 
 /* ----------------------- Type definitions ---------------------------------*/
 typedef enum
@@ -68,7 +44,7 @@ typedef enum
 static volatile eMBSndState eSndState;
 static volatile eMBRcvState eRcvState;
 
-volatile UCHAR  ucRTUBuf[MB_SER_PDU_SIZE_MAX];
+volatile UCHAR  ucUSERBuf[MB_SER_PDU_SIZE_MAX];
 
 static volatile UCHAR *pucSndBufferCur;
 static volatile USHORT usSndBufferCount;
@@ -77,7 +53,7 @@ static volatile USHORT usRcvBufferPos;
 
 /* ----------------------- Start implementation -----------------------------*/
 eMBErrorCode
-eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
+eMBUSERInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
@@ -85,7 +61,7 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
     ( void )ucSlaveAddress;
     ENTER_CRITICAL_SECTION(  );
 
-    /* Modbus RTU uses 8 Databits. */
+    /* Modbus USER uses 8 Databits. */
     if( xMBPortSerialInit( ucPort, ulBaudRate, 8, eParity ) != TRUE )
     {
         eStatus = MB_EPORTERR;
@@ -122,7 +98,7 @@ eMBRTUInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePar
 }
 
 void
-eMBRTUStart( void )
+eMBUSERStart( void )
 {
     ENTER_CRITICAL_SECTION(  );
     /* Initially the receiver is in the state STATE_RX_INIT. we start
@@ -138,7 +114,7 @@ eMBRTUStart( void )
 }
 
 void
-eMBRTUStop( void )
+eMBUSERStop( void )
 {
     ENTER_CRITICAL_SECTION(  );
     vMBPortSerialEnable( FALSE, FALSE );
@@ -146,8 +122,21 @@ eMBRTUStop( void )
     EXIT_CRITICAL_SECTION(  );
 }
 
+BOOL is_correct_frame(uint8_t **pucFrame, uint32_t BufferPos)
+{
+    LOG_I("[MBU]BufferPos:%d", BufferPos);
+    if ((*pucFrame)[0]  == 0x55 &&
+        (*pucFrame)[1]  == 0xaa &&
+        (*pucFrame)[12] == 0x5a &&
+        (*pucFrame)[13] == 0xa5 ) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
 eMBErrorCode
-eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
+eMBUSERReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 {
     BOOL            xFrameReceived = FALSE;
     eMBErrorCode    eStatus = MB_ENOERR;
@@ -157,20 +146,21 @@ eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 
     /* Length and CRC check */
     if( ( usRcvBufferPos >= MB_SER_PDU_SIZE_MIN )
-        && ( usMBCRC16( ( UCHAR * ) ucRTUBuf, usRcvBufferPos ) == 0 ) )
+        && ( is_correct_frame((UCHAR *)ucUSERBuf, usRcvBufferPos) == TRUE ))
     {
+        hex_dump("ucUSERBuf", ucUSERBuf, usRcvBufferPos);
         /* Save the address field. All frames are passed to the upper layed
          * and the decision if a frame is used is done there.
          */
-        *pucRcvAddress = ucRTUBuf[MB_SER_PDU_ADDR_OFF];
+        //*pucRcvAddress = ucUSERBuf[MB_SER_PDU_ADDR_OFF];
 
         /* Total length of Modbus-PDU is Modbus-Serial-Line-PDU minus
          * size of address field and CRC checksum.
          */
-        *pusLength = ( USHORT )( usRcvBufferPos - MB_SER_PDU_PDU_OFF - MB_SER_PDU_SIZE_CRC );
+        *pusLength = ( USHORT )(usRcvBufferPos - MB_SER_PDU_HAED_SIZE - MB_SER_PDU_TAIL_SIZE);
 
         /* Return the start of the Modbus PDU to the caller. */
-        *pucFrame = ( UCHAR * ) & ucRTUBuf[MB_SER_PDU_PDU_OFF];
+        *pucFrame = ( UCHAR * ) & ucUSERBuf[MB_SER_PDU_PDU_OFF];
         xFrameReceived = TRUE;
     }
     else
@@ -183,7 +173,7 @@ eMBRTUReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 }
 
 eMBErrorCode
-eMBRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
+eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
@@ -197,17 +187,17 @@ eMBRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
     if( eRcvState == STATE_RX_IDLE )
     {
         /* First byte before the Modbus-PDU is the slave address. */
-        pucSndBufferCur = ( UCHAR * ) pucFrame - 1;
-        usSndBufferCount = 1;
+        pucSndBufferCur = ( UCHAR * ) pucFrame;
+        usSndBufferCount = 0;
 
         /* Now copy the Modbus-PDU into the Modbus-Serial-Line-PDU. */
         pucSndBufferCur[MB_SER_PDU_ADDR_OFF] = ucSlaveAddress;
         usSndBufferCount += usLength;
 
         /* Calculate CRC16 checksum for Modbus-Serial-Line-PDU. */
-        usCRC16 = usMBCRC16( ( UCHAR * ) pucSndBufferCur, usSndBufferCount );
-        ucRTUBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 & 0xFF );
-        ucRTUBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
+        //usCRC16 = usMBCRC16( ( UCHAR * ) pucSndBufferCur, usSndBufferCount );
+        ucUSERBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 & 0xFF );
+        ucUSERBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
 
         /* Activate the transmitter. */
         eSndState = STATE_TX_XMIT;
@@ -222,7 +212,7 @@ eMBRTUSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
 }
 
 BOOL
-xMBRTUReceiveFSM( void )
+xMBUSERReceiveFSM( void )
 {
     BOOL            xTaskNeedSwitch = FALSE;
     UCHAR           ucByte;
@@ -254,7 +244,7 @@ xMBRTUReceiveFSM( void )
          */
     case STATE_RX_IDLE:
         usRcvBufferPos = 0;
-        ucRTUBuf[usRcvBufferPos++] = ucByte;
+        ucUSERBuf[usRcvBufferPos++] = ucByte;
         eRcvState = STATE_RX_RCV;
 
         /* Enable t3.5 timers. */
@@ -269,7 +259,7 @@ xMBRTUReceiveFSM( void )
     case STATE_RX_RCV:
         if( usRcvBufferPos < MB_SER_PDU_SIZE_MAX )
         {
-            ucRTUBuf[usRcvBufferPos++] = ucByte;
+            ucUSERBuf[usRcvBufferPos++] = ucByte;
         }
         else
         {
@@ -282,7 +272,7 @@ xMBRTUReceiveFSM( void )
 }
 
 BOOL
-xMBRTUTransmitFSM( void )
+xMBUSERTransmitFSM( void )
 {
     BOOL            xNeedPoll = FALSE;
 
@@ -320,7 +310,7 @@ xMBRTUTransmitFSM( void )
 }
 
 BOOL
-xMBRTUTimerT35Expired( void )
+xMBUSERTimerT35Expired( void )
 {
     BOOL            xNeedPoll = FALSE;
 

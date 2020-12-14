@@ -261,3 +261,22 @@ void log_debug(const char *func, int line, const char *message, ...)
 void syslog_assert_set_hook(void (*hook)(const char* expr, const char* func, uint32_t line)) {
     syslog_assert_hook = hook;
 }
+
+void hex_dump(const char *name, const char *data, int length)
+{
+    int index = 0;
+    printf("%s: ", name);
+    for (index = 0; index < length; index++) {
+        printf("%02X", (int)(data[index]));
+        if ((index + 1) % 16 == 0) {
+            printf("\n");
+            continue;
+        }
+        if (index + 1 != length) {
+            printf(" ");
+        }
+    }
+    if (0 != index && 0 != index % 16) {
+        printf("\n");//add one more blank line
+    }
+}

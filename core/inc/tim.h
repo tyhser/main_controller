@@ -53,6 +53,12 @@ void pwm_output_init(void);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 
 void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num);
+
+void MX_TIM7_Init(uint16_t usTim1Timerout50us);
+
+void timer7_enable(void);
+void timer7_disable(void);
+void timer7_deinit(void);
 /* USER CODE BEGIN Prototypes */
 #define PWM1(i) pwm_output(PWM_1, 1350, (i))
 #define PWM2(i) pwm_output(PWM_2, 50000, (i))

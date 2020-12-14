@@ -46,13 +46,15 @@ PR_BEGIN_EXTERN_C
  *  @{
  */
 /*! \brief If Modbus ASCII support is enabled. */
-#define MB_ASCII_ENABLED                        (  1 )
+#define MB_ASCII_ENABLED                        (  0 )
 
 /*! \brief If Modbus RTU support is enabled. */
-#define MB_RTU_ENABLED                          (  1 )
+#define MB_RTU_ENABLED                          (  0 )
 
 /*! \brief If Modbus TCP support is enabled. */
 #define MB_TCP_ENABLED                          (  0 )
+
+#define MB_USER_ENABLED                         (  1 )
 
 /*! \brief The character timeout value for Modbus ASCII.
  *
@@ -94,6 +96,7 @@ PR_BEGIN_EXTERN_C
  */
 #define MB_FUNC_OTHER_REP_SLAVEID_BUF           ( 32 )
 
+#ifndef FEATURE_MB_USER_ENABLE
 /*! \brief If the <em>Report Slave ID</em> function should be enabled. */
 #define MB_FUNC_OTHER_REP_SLAVEID_ENABLED       (  1 )
 
@@ -123,7 +126,9 @@ PR_BEGIN_EXTERN_C
 
 /*! \brief If the <em>Read/Write Multiple Registers</em> function should be enabled. */
 #define MB_FUNC_READWRITE_HOLDING_ENABLED       (  1 )
+#else
 
+#endif
 /*! @} */
 #ifdef __cplusplus
     PR_END_EXTERN_C

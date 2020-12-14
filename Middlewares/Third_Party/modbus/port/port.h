@@ -28,55 +28,47 @@
  * File: $Id$
  */
 
-/* ----------------------- System includes ----------------------------------*/
-#include <stdlib.h>
-#include <FreeRTOS.h>
-#include <task.h>
-#include <semphr.h>
+#ifndef _PORT_H
+#define _PORT_H
 
-/* ----------------------- Modbus includes ----------------------------------*/
-#include "mb.h"
-#include "mbport.h"
+/* ----------------------- Platform includes --------------------------------*/
+/* ----------------------- Defines ------------------------------------------*/
+#define	INLINE                      inline
+#define PR_BEGIN_EXTERN_C           extern "C" {
+#define	PR_END_EXTERN_C             }
 
-/* ----------------------- Modbus includes ----------------------------------*/
-#include <intrinsics.h>
+#define ENTER_CRITICAL_SECTION( )   vMBPortEnterCritical()
+#define EXIT_CRITICAL_SECTION( )    vMBPortExitCritical()
 
-/* ----------------------- Variables ----------------------------------------*/
-static BOOL     bIsWithinException = FALSE;
+#define assert( x ) (void *)0
 
-/* ----------------------- Start implementation -----------------------------*/
+typedef char    BOOL;
 
-void
-vMBPortSetWithinException( BOOL bInException )
-{
-    bIsWithinException = bInException;
-}
+typedef unsigned char UCHAR;
+typedef char    CHAR;
 
-BOOL
-bMBPortIsWithinException( void )
-{
-    return bIsWithinException;
-}
+typedef unsigned short USHORT;
+typedef short   SHORT;
 
-void
-vMBPortEnterCritical( void )
-{
-    taskENTER_CRITICAL(  );
-}
+typedef unsigned long ULONG;
+typedef long    LONG;
 
-void
-vMBPortExitCritical( void )
-{
-    taskEXIT_CRITICAL(  );
-}
+#ifndef TRUE
+#define TRUE                                    1
+#endif
 
-void
-vMBPortClose( void )
-{
-    extern void     vMBPortSerialClose( void );
-    extern void     vMBPortTimerClose( void );
-    extern void     vMBPortEventClose( void );
-    vMBPortSerialClose(  );
-    vMBPortTimerClose(  );
-    vMBPortEventClose(  );
-}
+#ifndef FALSE
+#define FALSE                                   0
+#endif
+
+#define MB_PORT_HAS_CLOSE	                    1
+#define MB_ASCII_TIMEOUT_WAIT_BEFORE_SEND_MS    2
+
+/* ----------------------- Prototypes ---------------------------------------*/
+void            vMBPortSetWithinException( BOOL bInException );
+BOOL            bMBPortIsWithinException( void );
+
+void            vMBPortEnterCritical( void );
+void            vMBPortExitCritical( void );
+
+#endif

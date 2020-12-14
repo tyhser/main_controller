@@ -17,7 +17,8 @@ PROJECT_FILES = $(PROJECT_SRC)/src/main.c \
                 $(PROJECT_SRC)/src/app_event.c \
                 $(PROJECT_SRC)/src/app_main.c \
                 $(PROJECT_SRC)/src/app_state_controler.c \
-                $(PROJECT_SRC)/src/interrupt_handler.c
+                $(PROJECT_SRC)/src/interrupt_handler.c\
+                $(PROJECT_SRC)/src/mdtask.c
 
 
 

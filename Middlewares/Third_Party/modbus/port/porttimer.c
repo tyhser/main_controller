@@ -29,64 +29,48 @@
  */
 
 /* ----------------------- System includes ----------------------------------*/
-#include <FreeRTOS.h>
-#include <task.h>
-#include <queue.h>
-
+#include "tim.h"
+#include "cmsis_os.h"
 /* ----------------------- Modbus includes ----------------------------------*/
+#include "port.h"
 #include "mb.h"
 #include "mbport.h"
-
-/* ----------------------- Variables ----------------------------------------*/
-static xQueueHandle xQueueHdl;
-
-
+/* ----------------------- Defines ------------------------------------------*/
 /* ----------------------- Start implementation -----------------------------*/
+
+
 BOOL
-xMBPortEventInit( void )
+xMBPortTimersInit( USHORT usTim1Timerout50us )
 {
-    BOOL            bStatus = FALSE;
-    if( 0 != ( xQueueHdl = xQueueCreate( 1, sizeof( eMBEventType ) ) ) )
-    {
-        bStatus = TRUE;
-    }
-    return bStatus;
+    MX_TIM7_Init(usTim1Timerout50us);
 }
 
 void
-vMBPortEventClose( void )
+vMBPortTimerClose( void )
 {
-    if( 0 != xQueueHdl )
-    {
-        vQueueDelete( xQueueHdl );
-        xQueueHdl = 0;
-    }
+    timer7_deinit();
 }
 
-BOOL
-xMBPortEventPost( eMBEventType eEvent )
+void
+vMBPortTimersEnable(  )
 {
-    BOOL            bStatus = TRUE;
-    if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&eEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&eEvent, pdFALSE );
-    }
-
-    return bStatus;
+    timer7_enable();
 }
 
-BOOL
-xMBPortEventGet( eMBEventType * peEvent )
+void
+vMBPortTimersDisable(  )
 {
-    BOOL            xEventHappened = FALSE;
+    timer7_disable();
+}
 
-    if( pdTRUE == xQueueReceive( xQueueHdl, peEvent, portTICK_RATE_MS * 50 ) )
-    {
-        xEventHappened = TRUE;
-    }
-    return xEventHappened;
+void
+vMBPortTimersDelay( USHORT usTimeOutMS )
+{
+    osDelay(usTimeOutMS / portTICK_RATE_MS);
+}
+
+void
+vMBPortTimerHandler(void *argument)
+{
+    (void)pxMBPortCBTimerExpired();
 }
