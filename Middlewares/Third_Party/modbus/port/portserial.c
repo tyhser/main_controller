@@ -37,7 +37,6 @@ xMBPortSerialInit( UCHAR ucPORT, ULONG ulBaudRate, UCHAR ucDataBits, eMBParity e
 
     BOOL bStatus = FALSE;
     MX_USART3_UART_Init(ulBaudRate);
-    HAL_UART_Receive_IT(&huart3, &ch_rx, 1);
     bStatus = TRUE;
     LOG_I("enter xMBPortSerialInit");
     return bStatus;

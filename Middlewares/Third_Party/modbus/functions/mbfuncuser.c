@@ -30,6 +30,9 @@
 /* ----------------------- System includes ----------------------------------*/
 #include "stdlib.h"
 #include "string.h"
+#include "app_event.h"
+#include "motor.h"
+#include "syslog.h"
 
 /* ----------------------- Platform includes --------------------------------*/
 #include "port.h"
@@ -41,12 +44,35 @@
 #include "mbconfig.h"
 
 /* ----------------------- Defines ------------------------------------------*/
-#define MB_PDU_FUNC_READ_ADDR_OFF           ( MB_PDU_DATA_OFF )
-#define MB_PDU_FUNC_READ_REGCNT_OFF         ( MB_PDU_DATA_OFF + 2 )
-#define MB_PDU_FUNC_READ_SIZE               ( 4 )
-#define MB_PDU_FUNC_READ_REGCNT_MAX         ( 0x007D )
+#define FUNC_MOTOR_1 0x01
+#define FUNC_MOTOR_2 0x02
+#define FUNC_MOTOR_3 0x03
+#define FUNC_MOTOR_4 0x04
 
-#define MB_PDU_FUNC_READ_RSP_BYTECNT_OFF    ( MB_PDU_DATA_OFF )
+#define FUNC_VALVE_1 0x05
+#define FUNC_VALVE_2 0x06
+#define FUNC_VALVE_3 0x07
+#define FUNC_VALVE_4 0x08
+#define FUNC_VALVE_5 0x09
+#define FUNC_VALVE_6 0x0a
+
+#define FUNC_TEMP       0x0b
+#define FUNC_CLOSE_ALL  0x0d
+
+
+#define OPERAT_FWD              0xff
+#define OPERAT_REV              0x00
+#define OPERAT_RUN              0xa1
+#define OPERAT_STOP             0xb1
+#define OPERAT_OPEN             0xff
+#define OPERAT_CLOSE            0x00
+#define OPERAT_TEMP_CONTROL_ON  0xff
+#define OPERAT_TEMP_CONTROL_OFF 0x00
+
+#define BIT_ID      0
+#define BIT_FUNC    1
+#define BIT_OPERAT  2
+#define BIT_DATA    3
 
 /* ----------------------- Static functions ---------------------------------*/
 eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
@@ -55,63 +81,65 @@ eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
 eMBException
 eMBFuncUser( UCHAR * pucFrame, USHORT * usLen )
 {
-    USHORT          usRegAddress;
-    USHORT          usRegCount;
     UCHAR          *pucFrameCur;
-
     eMBException    eStatus = MB_EX_NONE;
-    eMBErrorCode    eRegStatus;
+    uint32_t data = 0; 
+    data = (pucFrame[BIT_DATA]<<16) | (pucFrame[BIT_DATA+1]<<8) | pucFrame[BIT_DATA+2];
+    LOG_I("[MB] frame data:[%d]", data);
 
-    if( *usLen == ( MB_PDU_FUNC_READ_SIZE + MB_PDU_SIZE_MIN ) )
-    {
-        usRegAddress = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF] << 8 );
-        usRegAddress |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_ADDR_OFF + 1] );
-        usRegAddress++;
+    if (pucFrame[BIT_FUNC] >= FUNC_MOTOR_1 &&
+        pucFrame[BIT_FUNC] <= FUNC_MOTOR_4) {
 
-        usRegCount = ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF] << 8 );
-        usRegCount |= ( USHORT )( pucFrame[MB_PDU_FUNC_READ_REGCNT_OFF + 1] );
+        /*motor run stop mode*/
+        if (pucFrame[BIT_OPERAT] == OPERAT_RUN ||
+            pucFrame[BIT_OPERAT] == OPERAT_STOP) {
 
-        /* Check if the number of registers to read is valid. If not
-         * return Modbus illegal data value exception. 
-         */
-        if( ( usRegCount >= 1 )
-            && ( usRegCount < MB_PDU_FUNC_READ_REGCNT_MAX ) )
-        {
-            /* Set the current PDU data pointer to the beginning. */
-            pucFrameCur = &pucFrame[MB_PDU_FUNC_OFF];
-            *usLen = MB_PDU_FUNC_OFF;
-
-            /* First byte contains the function code. */
-            *pucFrameCur++ = MB_FUNC_READ_INPUT_REGISTER;
-            *usLen += 1;
-
-            /* Second byte in the response contain the number of bytes. */
-            *pucFrameCur++ = ( UCHAR )( usRegCount * 2 );
-            *usLen += 1;
-
-            eRegStatus =
-                eMBRegInputCB( pucFrameCur, usRegAddress, usRegCount );
-
-            /* If an error occured convert it into a Modbus exception. */
-            if( eRegStatus != MB_ENOERR )
-            {
-                eStatus = prveMBError2Exception( eRegStatus );
+            motor_run_stop_t m_run_stop = {0};
+            m_run_stop.motor_id = pucFrame[BIT_FUNC];
+            if (pucFrame[BIT_OPERAT] == OPERAT_RUN) {
+                m_run_stop.state = MOTOR_RUN;
+            } else {
+                m_run_stop.state = MOTOR_STOP;
             }
-            else
-            {
-                *usLen += usRegCount * 2;
+
+            event_callback(EVENT_MOTOR_RUN_STOP, (event_param_t *)&m_run_stop);
+        /*motor step mode*/
+        } else if (pucFrame[BIT_OPERAT] == OPERAT_FWD ||
+                   pucFrame[BIT_OPERAT] == OPERAT_REV) {
+
+            motor_step_t m_step = {0};
+
+            m_step.motor_id = pucFrame[BIT_FUNC];
+
+            if (pucFrame[BIT_OPERAT] == OPERAT_FWD) {
+                m_step.dir = DIRECTION_FWD;
+            } else {
+                m_step.dir = DIRECTION_REV;
             }
+            m_step.step = data;
+
+            event_callback(EVENT_MOTOR_STEPS, (event_param_t *)&m_step);
+        } else {}
+
+    } else if (pucFrame[BIT_FUNC] >= FUNC_VALVE_1 &&
+               pucFrame[BIT_FUNC] <= FUNC_VALVE_6) {
+
+        valve_open_close_t v_open_close = {0};
+        v_open_close.valve_id = pucFrame[BIT_FUNC];
+
+        if (pucFrame[BIT_OPERAT] == OPERAT_OPEN) {
+            v_open_close.state = VALVE_STATE_OPEN;
+        } else {
+            v_open_close.state = VALVE_STATE_CLOSE;
         }
-        else
-        {
-            eStatus = MB_EX_ILLEGAL_DATA_VALUE;
-        }
-    }
-    else
-    {
-        /* Can't be a valid read input register request because the length
-         * is incorrect. */
-        eStatus = MB_EX_ILLEGAL_DATA_VALUE;
-    }
+        event_callback(EVENT_VALVE_OPEN_CLOSE, (event_param_t *)&v_open_close);
+
+    } else if (pucFrame[BIT_FUNC] == FUNC_CLOSE_ALL) {
+        event_callback(EVENT_STOP_ALL, NULL);
+
+    } else if (pucFrame[BIT_FUNC] == FUNC_TEMP) {
+        LOG_E("Not support temperature control now");
+    } else {}
+
     return eStatus;
 }

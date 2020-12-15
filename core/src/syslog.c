@@ -267,7 +267,7 @@ void hex_dump(const char *name, const char *data, int length)
     int index = 0;
     printf("%s: ", name);
     for (index = 0; index < length; index++) {
-        printf("%02X", (int)(data[index]));
+        printf("%02X", data[index]);
         if ((index + 1) % 16 == 0) {
             printf("\n");
             continue;
@@ -277,6 +277,6 @@ void hex_dump(const char *name, const char *data, int length)
         }
     }
     if (0 != index && 0 != index % 16) {
-        printf("\n");//add one more blank line
+        printf("\n");
     }
 }

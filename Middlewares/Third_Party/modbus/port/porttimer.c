@@ -31,6 +31,7 @@
 /* ----------------------- System includes ----------------------------------*/
 #include "tim.h"
 #include "cmsis_os.h"
+#include "syslog.h"
 /* ----------------------- Modbus includes ----------------------------------*/
 #include "port.h"
 #include "mb.h"
@@ -42,7 +43,9 @@
 BOOL
 xMBPortTimersInit( USHORT usTim1Timerout50us )
 {
+    LOG_I("usTim1Timerout50us:%d", usTim1Timerout50us);
     MX_TIM7_Init(usTim1Timerout50us);
+    return TRUE;
 }
 
 void

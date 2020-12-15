@@ -55,6 +55,7 @@ static volatile USHORT usRcvBufferPos;
 eMBErrorCode
 eMBUSERInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
 {
+    LOG_I("enter eMBUSERInit");
     eMBErrorCode    eStatus = MB_ENOERR;
     ULONG           usTimerT35_50us;
 
@@ -79,13 +80,14 @@ eMBUSERInit( UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eMBParity ePa
         {
             /* The timer reload value for a character is given by:
              *
-             * ChTimeValue = Ticks_per_1s / ( Baudrate / 11 )
-             *             = 11 * Ticks_per_1s / Baudrate
-             *             = 220000 / Baudrate
+             * ChTimeValue = Ticks_per_1s / ( Baudrate / 10 )
+             *             = 10 * Ticks_per_1s / Baudrate
+             *             = 200000 / Baudrate
              * The reload for t3.5 is 1.5 times this value and similary
              * for t3.5.
+             * current no eParity, so a frame is 10 bit, otherwise 11 bit
              */
-            usTimerT35_50us = ( 7UL * 220000UL ) / ( 2UL * ulBaudRate );
+            usTimerT35_50us = ( 7UL * 200000UL ) / ( 2UL * ulBaudRate );
         }
         if( xMBPortTimersInit( ( USHORT ) usTimerT35_50us ) != TRUE )
         {
@@ -122,13 +124,16 @@ eMBUSERStop( void )
     EXIT_CRITICAL_SECTION(  );
 }
 
-BOOL is_correct_frame(uint8_t **pucFrame, uint32_t BufferPos)
+BOOL is_correct_frame(UCHAR *frame, uint32_t BufferPos)
 {
+    uint8_t h0 = frame[0];
+    uint8_t h1 = frame[1];
+    uint8_t h12 =frame[12];
+    uint8_t h13 =frame[13];
+
     LOG_I("[MBU]BufferPos:%d", BufferPos);
-    if ((*pucFrame)[0]  == 0x55 &&
-        (*pucFrame)[1]  == 0xaa &&
-        (*pucFrame)[12] == 0x5a &&
-        (*pucFrame)[13] == 0xa5 ) {
+    if (h0  == 0x55 && h1 == 0xaa && h12 == 0x5a && h13 == 0xa5) {
+        LOG_I("OK frame");
         return TRUE;
     } else {
         return FALSE;
@@ -144,11 +149,26 @@ eMBUSERReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
     ENTER_CRITICAL_SECTION(  );
     assert( usRcvBufferPos < MB_SER_PDU_SIZE_MAX );
 
-    /* Length and CRC check */
+    LOG_I("[MB]ucUSERBuf address:%p", ucUSERBuf);
+    LOG_I("%x", ucUSERBuf[0]);
+    LOG_I("%x", ucUSERBuf[1]);
+    LOG_I("%x", ucUSERBuf[2]);
+    LOG_I("%x", ucUSERBuf[3]);
+    LOG_I("%x", ucUSERBuf[4]);
+    LOG_I("%x", ucUSERBuf[5]);
+    LOG_I("%x", ucUSERBuf[6]);
+    LOG_I("%x", ucUSERBuf[7]);
+    LOG_I("%x", ucUSERBuf[8]);
+    LOG_I("%x", ucUSERBuf[9]);
+    LOG_I("%x", ucUSERBuf[10]);
+    LOG_I("%x", ucUSERBuf[11]);
+    LOG_I("%x", ucUSERBuf[12]);
+    LOG_I("%x", ucUSERBuf[13]);
+    //hex_dump("ucUSERBuf", &ucUSERBuf, usRcvBufferPos);
+    LOG_I("[MB]usRcvBufferPos:%d", usRcvBufferPos);
     if( ( usRcvBufferPos >= MB_SER_PDU_SIZE_MIN )
         && ( is_correct_frame((UCHAR *)ucUSERBuf, usRcvBufferPos) == TRUE ))
     {
-        hex_dump("ucUSERBuf", ucUSERBuf, usRcvBufferPos);
         /* Save the address field. All frames are passed to the upper layed
          * and the decision if a frame is used is done there.
          */
@@ -169,6 +189,7 @@ eMBUSERReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
     }
 
     EXIT_CRITICAL_SECTION(  );
+    LOG_I("[MB] eMBUSERReceive return %d", eStatus);
     return eStatus;
 }
 
@@ -313,7 +334,7 @@ BOOL
 xMBUSERTimerT35Expired( void )
 {
     BOOL            xNeedPoll = FALSE;
-
+    LOG_I("xMBUSERTimerT35Expired");
     switch ( eRcvState )
     {
         /* Timer t35 expired. Startup phase is finished. */

@@ -15,7 +15,7 @@ static USHORT usRegInputBuf[REG_INPUT_NREGS];
 const osThreadAttr_t modbusTask_attributes = {
     .name = "modbusTask",
     .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 128
+    .stack_size = 128 * 10
 };
 
 osThreadId_t modbusTaskHandle;
@@ -36,13 +36,13 @@ void modbusTask(void const * argument)
   usRegInputBuf[4] = 55;
   usRegInputBuf[5] = 66;
   usRegInputBuf[6] = 77;
-  usRegInputBuf[7] = 88;  
-  
+  usRegInputBuf[7] = 88; 
+
   eMBErrorCode eStatus = eMBInit( MB_USER, 1, 3, 9600, MB_PAR_NONE );
   eStatus = eMBEnable();
   
   while(1) {
-    eMBPoll();           
+    eMBPoll();
   }
 }
 

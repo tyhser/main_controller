@@ -19,7 +19,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
-#include "syslog.h"
 #include "motor.h"
 
 /* USER CODE BEGIN 0 */
@@ -280,7 +279,6 @@ void MX_TIM7_Init(uint16_t usTim1Timerout50us)
   {
     Error_Handler();
   }
-  LOG_I("[timer][xMBPort] timer init");
 }
 
 /* TIM8 init function */
@@ -838,22 +836,19 @@ void pwm_output_init(void)
 void timer7_enable(void)
 {
     __HAL_TIM_SET_COUNTER(&htim7, 0);
-    HAL_TIM_Base_Start_IT(&htim7);
     __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);
-    LOG_I("[timer][xMBPort] timer enable");
+    HAL_TIM_Base_Start_IT(&htim7);
 }
 void timer7_disable(void)
 {
     HAL_TIM_Base_Stop_IT(&htim7);
-    __HAL_TIM_DISABLE_IT(&htim7, TIM_IT_UPDATE);
     __HAL_TIM_SET_COUNTER(&htim7, 0);
-    LOG_I("[timer][xMBPort] timer disable");
+    __HAL_TIM_DISABLE_IT(&htim7, TIM_IT_UPDATE);
 }
 
 void timer7_deinit(void)
 {
     HAL_TIM_Base_MspDeInit(&htim7);
-    LOG_I("[timer][xMBPort] timer close");
 }
 /* USER CODE END 1 */
 

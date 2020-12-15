@@ -181,7 +181,7 @@ eMBInit( eMBMode eMode, UCHAR ucSlaveAddress, UCHAR ucPort, ULONG ulBaudRate, eM
 #endif
 #if MB_USER_ENABLED > 0
         case MB_USER:
-            pvMBFrameStartCur = eMBUSERInit;
+            pvMBFrameStartCur = eMBUSERStart;
             pvMBFrameStopCur = eMBUSERStop;
             peMBFrameSendCur = eMBUSERSend;
             peMBFrameReceiveCur = eMBUSERReceive;
@@ -388,6 +388,8 @@ eMBPoll( void )
                 {
                     ( void )xMBPortEventPost( EV_EXECUTE );
                 }
+            } else {
+                LOG_I("[MB]reveive frame error");
             }
             break;
 
@@ -457,6 +459,7 @@ eMBPoll( void )
      * Otherwise we will handle the event. */
     if( xMBPortEventGet( &eEvent ) == TRUE )
     {
+        LOG_I("[MB]Get event:[%d]", eEvent);
         switch ( eEvent )
         {
         case EV_READY:
@@ -467,6 +470,8 @@ eMBPoll( void )
             if( eStatus == MB_ENOERR )
             {
                 ( void )xMBPortEventPost( EV_EXECUTE );
+            } else {
+                LOG_I("[MB]reveive frame error");
             }
             break;
 
@@ -487,7 +492,7 @@ eMBPoll( void )
                 }
             }
             /* return a reply. */
-            eStatus = peMBFrameSendCur( ucMBAddress, ucMBFrame, usLength );
+            //eStatus = peMBFrameSendCur( ucMBAddress, ucMBFrame, usLength );
             break;
 
         case EV_FRAME_SENT:

@@ -450,6 +450,50 @@ status_t motor_event_handler(event_t event_id, void *parameters)
             motor_fault_handler(id->num);
         }
         break;
+        case EVENT_MOTOR_STEPS:
+        {
+            motor_step_t *m_step = (motor_step_t *)parameters;
+            LOG_I("[motor] motor:%d dir:%d step:%d", m_step->motor_id, m_step->dir, m_step->step);
 
+            set_motor_direction(m_step->motor_id, m_step->dir);
+            motor_enable_disable(m_step->motor_id, true);
+            motor_run_steps(m_step->motor_id, m_step->step);
+            
+        }
+        break;
+        case EVENT_MOTOR_RUN_STOP:
+        {
+            motor_run_stop_t *m_rs = (motor_run_stop_t *)parameters;
+            LOG_I("[motor] motor:%d state:%d", m_rs->motor_id, m_rs->state);
+            if (m_rs->state == MOTOR_STOP) {
+                motor_stop(m_rs->motor_id);
+            } else {
+                LOG_E("[motor] unknow steps, can't run");
+            }
+        }
+        break;
+        case EVENT_VALVE_OPEN_CLOSE:
+        {
+            valve_open_close_t *v_os = (valve_open_close_t *)parameters;
+            LOG_I("[motor] valve:%d open close:%d", v_os->valve_id, v_os->state);
+
+            set_valve_state(v_os->valve_id, v_os->state);
+        }
+        break;
+        case EVENT_STOP_ALL:
+        LOG_I("[motor] stop all motor and valve");
+        motor_stop(MOTOR_SYRINGE_ID);
+        motor_stop(MOTOR_X_AXIS_ID);
+        motor_stop(MOTOR_Z_AXIS_ID);
+        motor_stop(MOTOR_RECEIVED_ID);
+        set_valve_state(VALVE_1, VALVE_STATE_CLOSE);
+        set_valve_state(VALVE_2, VALVE_STATE_CLOSE);
+        set_valve_state(VALVE_3, VALVE_STATE_CLOSE);
+        set_valve_state(VALVE_4, VALVE_STATE_CLOSE);
+        set_valve_state(VALVE_5, VALVE_STATE_CLOSE);
+        set_valve_state(VALVE_6, VALVE_STATE_CLOSE);
+        break;
+        default:
+            break;
     }
 }

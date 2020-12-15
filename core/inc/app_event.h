@@ -28,6 +28,10 @@ typedef enum {
     EVENT_FAULT,
     EVENT_MOTOR_STATE_CHANGE,
     EVENT_MOTOR_DIRECTION_CHANGE,
+    EVENT_MOTOR_STEPS,
+    EVENT_MOTOR_RUN_STOP,
+    EVENT_VALVE_OPEN_CLOSE,
+    EVENT_STOP_ALL,
     EVENT_ALL,
 } event_t;
 
@@ -55,11 +59,33 @@ typedef struct {
     uint8_t cur_dir;
 } motor_direction_change_t;
 
+typedef struct {
+    uint8_t motor_id;
+    uint8_t dir;
+    uint32_t step;
+
+} motor_step_t;
+
+typedef struct {
+    uint8_t motor_id;
+    uint8_t state;
+
+} motor_run_stop_t;
+
+typedef struct {
+    uint8_t valve_id;
+    uint8_t state;
+
+} valve_open_close_t;
+
 typedef union {
     state_change_t state_change;            /**<  State change. */
     channel_id_t channel_id;
     motor_state_change_t motor_state_change;
     motor_direction_change_t motor_dir_change;
+    motor_step_t motor_step;
+    motor_run_stop_t motor_run_stop;
+    valve_open_close_t valve_open_close;
 } event_param_t;
 /*================app event define end================*/
 
