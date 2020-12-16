@@ -400,22 +400,29 @@ void motor_enable_disable(motor_id_t id, bool value)
 
 void motor_run(motor_id_t id, uint32_t distance, direction_t dir)
 {
-    set_motor_direction (id, DIRECTION_FWD);
+    set_motor_direction (id, dir);
     motor_enable_disable(id, true);
     motor_run_steps     (id, distance);
 }
 
 void motor_init(void)
 {
-    motor_enable_disable(MOTOR_SYRINGE_ID, false);
-    motor_enable_disable(MOTOR_X_AXIS_ID, false);
-    motor_enable_disable(MOTOR_Z_AXIS_ID, false);
+#if 0
+    motor_enable_disable(MOTOR_SYRINGE_ID,  false);
+    motor_enable_disable(MOTOR_X_AXIS_ID,   false);
+    motor_enable_disable(MOTOR_Z_AXIS_ID,   false);
     motor_enable_disable(MOTOR_RECEIVED_ID, false);
-    set_subdriver_param(32);
-    MOTOR(MOTOR_SYRINGE_ID).fault = false;
-    MOTOR(MOTOR_X_AXIS_ID).fault = false;
-    MOTOR(MOTOR_Z_AXIS_ID).fault = false;
-    MOTOR(MOTOR_RECEIVED_ID).fault = false;
+#else
+    motor_enable_disable(MOTOR_SYRINGE_ID,  true);
+    motor_enable_disable(MOTOR_X_AXIS_ID,   true);
+    motor_enable_disable(MOTOR_Z_AXIS_ID,   true);
+    motor_enable_disable(MOTOR_RECEIVED_ID, true);
+#endif
+    set_subdriver_param(16);
+    MOTOR(MOTOR_SYRINGE_ID).fault   = false;
+    MOTOR(MOTOR_X_AXIS_ID).fault    = false;
+    MOTOR(MOTOR_Z_AXIS_ID).fault    = false;
+    MOTOR(MOTOR_RECEIVED_ID).fault  = false;
 
     MOTOR(MOTOR_SYRINGE_ID).state  = MOTOR_STOP;
     MOTOR(MOTOR_X_AXIS_ID).state   = MOTOR_STOP;
@@ -454,11 +461,7 @@ status_t motor_event_handler(event_t event_id, void *parameters)
         {
             motor_step_t *m_step = (motor_step_t *)parameters;
             LOG_I("[motor] motor:%d dir:%d step:%d", m_step->motor_id, m_step->dir, m_step->step);
-
-            set_motor_direction(m_step->motor_id, m_step->dir);
-            motor_enable_disable(m_step->motor_id, true);
-            motor_run_steps(m_step->motor_id, m_step->step);
-            
+            motor_run(m_step->motor_id, m_step->step, m_step->dir);
         }
         break;
         case EVENT_MOTOR_RUN_STOP:

@@ -262,21 +262,32 @@ void syslog_assert_set_hook(void (*hook)(const char* expr, const char* func, uin
     syslog_assert_hook = hook;
 }
 
-void hex_dump(const char *name, const char *data, int length)
+static uint32_t hex_dump_data_variant(const char *data, int length, char *log_buffer, uint32_t buffer_size)
 {
     int index = 0;
-    printf("%s: ", name);
+    uint32_t curr_index;
+
+    curr_index = 0;
     for (index = 0; index < length; index++) {
-        printf("%02X", data[index]);
+        curr_index += snprintf(&log_buffer[curr_index], (buffer_size - curr_index), "%02X", (int)(data[index]));
         if ((index + 1) % 16 == 0) {
-            printf("\n");
+            curr_index += snprintf(&log_buffer[curr_index], (buffer_size - curr_index), "\r\n");
             continue;
         }
         if (index + 1 != length) {
-            printf(" ");
+            curr_index += snprintf(&log_buffer[curr_index], (buffer_size - curr_index), " ");
         }
     }
     if (0 != index && 0 != index % 16) {
-        printf("\n");
+        //curr_index += snprintf(&log_buffer[curr_index], (buffer_size - curr_index), "\r\n"); //add one more blank line
     }
+
+    return curr_index;
+}
+
+void hex_dump(const char *name, const char *data, int length)
+{
+    uint8_t buf[256] = {0};
+    hex_dump_data_variant(data, length, buf, 256);
+    LOG_I("%s: %s", name, buf);
 }
