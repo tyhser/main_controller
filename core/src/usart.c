@@ -32,7 +32,6 @@ DMA_HandleTypeDef hdma_usart1_tx;
 
 void MX_USART1_UART_Init(void)
 {
-
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
@@ -49,11 +48,11 @@ void MX_USART1_UART_Init(void)
 }
 /* USART3 init function */
 
-void MX_USART3_UART_Init(void)
+void MX_USART3_UART_Init(uint32_t baud)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 9600;
+  huart3.Init.BaudRate = baud;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -207,6 +206,19 @@ int _write(int fd, char *ptr, int len)
     return i;
 }
 
+void usart3_enable(uint8_t rx_enable, uint8_t tx_enable)
+{
+    if (rx_enable) {
+        SET_BIT(USART3->CR1, UART_MODE_RX);
+    } else {
+        CLEAR_BIT(USART3->CR1, UART_MODE_RX);
+    }
+    if (tx_enable) {
+        SET_BIT(USART3->CR1, UART_MODE_TX);
+    } else {
+        CLEAR_BIT(USART3->CR1, UART_MODE_TX);
+    }
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

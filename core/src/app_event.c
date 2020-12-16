@@ -53,7 +53,7 @@ void app_event_post(event_t event_id, void *parameters, app_event_post_result_t 
 {
     app_event_t event;
 
-    LOG_I("[app event] app_event_post, event:%x", event_id);
+    LOG_I("[app event] app_event_post, event:%04x", event_id);
 
     memset(&event, 0, sizeof(app_event_t));
     event.event_id = event_id;

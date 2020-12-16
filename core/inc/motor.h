@@ -9,21 +9,22 @@
 #define MOTOR_X_AXIS_ID     2
 #define MOTOR_Z_AXIS_ID     3
 #define MOTOR_RECEIVED_ID   4
-#define MOTOR_END_ID    5
+#define MOTOR_END_ID  MOTOR_RECEIVED_ID+1
 typedef uint8_t motor_id_t;
+
+#define VALVE_1 5
+#define VALVE_2 6
+#define VALVE_3 7
+#define VALVE_4 8
+#define VALVE_5 9
+#define VALVE_6 10
+typedef uint8_t valve_id_t;
+
+#define MOTOR_VALVE_ALL 0x0d
 
 #define DIRECTION_FWD 1
 #define DIRECTION_REV 0
 typedef bool direction_t;
-
-#define VALVE_1 1
-#define VALVE_2 2
-#define VALVE_3 3
-#define VALVE_4 4
-#define VALVE_5 5
-#define VALVE_6 6
-#define VALVE_END 7
-typedef uint8_t valve_id_t;
 
 #define VALVE_STATE_OPEN  1
 #define VALVE_STATE_CLOSE 0
@@ -35,7 +36,7 @@ typedef bool motor_state_t;
 
 void motor_init(void);
 bool is_motor_zero(motor_id_t motor_id);
-void motor_zero_handler(uint8_t index);
+void motor_zero_handler(uint8_t index, uint8_t on_off);
 void set_motor_direction(motor_id_t motor_id, direction_t direction);
 void motor_stop(motor_id_t id);
 void motor_run_steps(motor_id_t id, uint32_t step);

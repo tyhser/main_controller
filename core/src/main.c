@@ -27,6 +27,7 @@
 #include "gpio.h"
 #include "syslog.h"
 #include "motor.h"
+#include "mb.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -101,9 +102,8 @@ int main(void)
   pwm_output_init();
   motor_init();
   MX_USART1_UART_Init();
-  MX_USART3_UART_Init();
-  cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
   syslog_init();
+  cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
 
   /* USER CODE BEGIN 2 */
 #if 0

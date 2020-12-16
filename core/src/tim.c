@@ -19,16 +19,21 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "tim.h"
-#include "syslog.h"
 #include "motor.h"
 
 /* USER CODE BEGIN 0 */
+
+uint8_t ( *pxMBPortCBTimerExpired ) ( void );
 
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim4;
+
+/*for xMBPortTimersInit*/
+TIM_HandleTypeDef htim7;
+
 TIM_HandleTypeDef htim8;
 TIM_HandleTypeDef htim9;
 TIM_HandleTypeDef htim12;
@@ -253,6 +258,29 @@ void MX_TIM5_Init(void)
   }
 
 }
+
+/*for xMBPortTimersInit*/
+void MX_TIM7_Init(uint16_t usTim1Timerout50us)
+{
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  htim7.Instance = TIM7;
+  htim7.Init.Prescaler = 4199;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim7.Init.Period = usTim1Timerout50us - 1;
+  htim7.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
 /* TIM8 init function */
 void MX_TIM8_Init(void)
 {
@@ -392,6 +420,12 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
   /* USER CODE BEGIN TIM5_MspInit 1 */
 
   /* USER CODE END TIM5_MspInit 1 */
+  }
+  else if (tim_baseHandle->Instance == TIM7)
+  {
+    __HAL_RCC_TIM7_CLK_ENABLE();
+    HAL_NVIC_SetPriority(TIM7_IRQn, INT_PRI_MIDDLE, 0);
+    HAL_NVIC_EnableIRQ(TIM7_IRQn);
   }
   else if(tim_baseHandle->Instance==TIM8)
   {
@@ -589,6 +623,20 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM5_MspDeInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM7)
+  {
+  /* USER CODE BEGIN TIM7_MspDeInit 0 */
+
+  /* USER CODE END TIM7_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM7_CLK_DISABLE();
+
+    /* TIM7 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM7_IRQn);
+  /* USER CODE BEGIN TIM7_MspDeInit 1 */
+
+  /* USER CODE END TIM7_MspDeInit 1 */
+  }
   else if(tim_baseHandle->Instance==TIM8)
   {
   /* USER CODE BEGIN TIM8_MspDeInit 0 */
@@ -671,6 +719,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
         __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
         set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
         motor_enable_disable(MOTOR_RECEIVED_ID, false);
+    }
+    else if (htim == &htim7) {
+        (void)pxMBPortCBTimerExpired();
     }
     else if (htim->Instance == TIM6) {
         HAL_IncTick();
@@ -780,6 +831,24 @@ void pwm_output_init(void)
 
     MX_TIM3_Init();
     MX_TIM5_Init();
+}
+
+void timer7_enable(void)
+{
+    __HAL_TIM_SET_COUNTER(&htim7, 0);
+    __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);
+    HAL_TIM_Base_Start_IT(&htim7);
+}
+void timer7_disable(void)
+{
+    HAL_TIM_Base_Stop_IT(&htim7);
+    __HAL_TIM_SET_COUNTER(&htim7, 0);
+    __HAL_TIM_DISABLE_IT(&htim7, TIM_IT_UPDATE);
+}
+
+void timer7_deinit(void)
+{
+    HAL_TIM_Base_MspDeInit(&htim7);
 }
 /* USER CODE END 1 */
 

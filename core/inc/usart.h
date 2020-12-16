@@ -39,8 +39,10 @@ extern UART_HandleTypeDef huart3;
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
-void MX_USART3_UART_Init(void);
 
+void MX_USART3_UART_Init(uint32_t baud);
+
+void usart3_enable(uint8_t rx_enable, uint8_t tx_enable);
 /* USER CODE BEGIN Prototypes */
 
 /* USER CODE END Prototypes */
