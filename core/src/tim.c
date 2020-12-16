@@ -850,6 +850,27 @@ void timer7_deinit(void)
 {
     HAL_TIM_Base_MspDeInit(&htim7);
 }
+
+void set_pwm_freq(pwm_id_t id, uint32_t freq)
+{
+    switch (id)
+    {
+        case PWM_1:
+            __HAL_TIM_SetAutoreload(&htim4, 1000000/freq - 1);
+            break;
+        case PWM_2:
+            __HAL_TIM_SetAutoreload(&htim2, 1000000/freq - 1);
+            break;
+        case PWM_3:
+            __HAL_TIM_SetAutoreload(&htim1, 1000000/freq - 1);
+            break;
+        case PWM_4:
+            __HAL_TIM_SetAutoreload(&htim3, 1000000/freq - 1);
+            break;
+        default:
+            break;
+    }
+}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

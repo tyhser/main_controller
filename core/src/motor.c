@@ -5,6 +5,11 @@
 #include "syslog.h"
 #include "motor.h"
 #include "app_event.h"
+#include "cmsis_os.h"
+
+extern const uint16_t svalue[];
+extern const uint16_t svalue_cnt;
+extern const uint16_t svalue_diff;
 
 struct motor {
     motor_state_t state;
@@ -14,6 +19,20 @@ struct motor {
 } motor_context[4];
 
 #define MOTOR(i) (motor_context[(i)-1])
+
+const osThreadAttr_t motorTask_attributes = {
+    .name = "motorTask",
+    .priority = (osPriority_t) osPriorityNormal,
+    .stack_size = 128 * 8
+};
+
+static void motorTask(void *arg);
+osThreadId_t motorTaskHandle;
+
+void motor_task_create(void)
+{
+    motorTaskHandle = osThreadNew(motorTask, NULL, &motorTask_attributes);
+}
 
 void motor_zero_handler(uint8_t index, uint8_t on_off)
 {
@@ -461,7 +480,11 @@ status_t motor_event_handler(event_t event_id, void *parameters)
         {
             motor_step_t *m_step = (motor_step_t *)parameters;
             LOG_I("[motor] motor:%d dir:%d step:%d", m_step->motor_id, m_step->dir, m_step->step);
+#if 0
             motor_run(m_step->motor_id, m_step->step, m_step->dir);
+#else
+            motor_run_with_sspeed(m_step->motor_id, m_step->step, m_step->dir);
+#endif
         }
         break;
         case EVENT_MOTOR_RUN_STOP:
@@ -498,5 +521,62 @@ status_t motor_event_handler(event_t event_id, void *parameters)
         break;
         default:
             break;
+    }
+}
+
+void motor_set_speed(motor_id_t id, uint32_t speed)
+{
+    switch (id)
+    {
+        case MOTOR_SYRINGE_ID:
+            set_pwm_freq(PWM_1, speed);
+        break;
+        case MOTOR_X_AXIS_ID:
+            set_pwm_freq(PWM_2, speed);
+        break;
+        case MOTOR_Z_AXIS_ID:
+            set_pwm_freq(PWM_3, speed);
+        break;
+        case MOTOR_RECEIVED_ID:
+            set_pwm_freq(PWM_4, speed);
+        break;
+        default:
+        LOG_E("unknow motor id");
+        break;
+    }
+}
+
+void motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
+{
+    uint8_t multiple = 50;
+
+    /*denomination of distance for Acc*/
+    uint8_t acc_part = 4;
+    uint32_t pulse_perms = 0;
+
+    set_motor_direction (id, dir);
+    motor_enable_disable(id, true);
+    motor_run_steps     (id, distance);
+
+    pulse_perms = (svalue[svalue_cnt/4]*multiple)/1000;
+    for (int i = 0; i < svalue_cnt; i++) {
+        motor_set_speed(id, multiple * svalue[i]);
+        osDelay(distance/(pulse_perms*svalue_cnt));
+        LOG_I("speed %d", multiple * svalue[i]);
+    }
+    LOG_I("svalue[svalue_cnt/4]%d", svalue[svalue_cnt/4]);
+    LOG_I("svalue_cnt/4 %d", svalue_cnt/4);
+
+    LOG_I("pulse_perms %d", pulse_perms);
+
+    LOG_I("cnt:%d", svalue_cnt);
+    LOG_I("delay %d", (distance/(pulse_perms*svalue_cnt)));
+}
+
+static void motorTask(void *arg)
+{
+    LOG_I("enter motorTask");
+    while (1) {
+
     }
 }
