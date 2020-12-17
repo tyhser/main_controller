@@ -61,7 +61,7 @@ void timer7_enable(void);
 void timer7_disable(void);
 void timer7_deinit(void);
 /* USER CODE BEGIN Prototypes */
-#define PWM1(i) pwm_output(PWM_1, 10000, (i))
+#define PWM1(i) pwm_output(PWM_1, 1260, (i))
 #define PWM2(i) pwm_output(PWM_2, 50000, (i))
 #define PWM3(i) pwm_output(PWM_3, 10000, (i))
 #define PWM4(i) pwm_output(PWM_4, 5000, (i))

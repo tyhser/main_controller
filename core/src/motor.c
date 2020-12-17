@@ -548,7 +548,7 @@ void motor_set_speed(motor_id_t id, uint32_t speed)
 
 void motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
 {
-    uint8_t multiple = 50;
+    uint8_t multiple = 100;
 
     /*denomination of distance for Acc*/
     uint8_t acc_part = 4;
@@ -559,18 +559,15 @@ void motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
     motor_run_steps     (id, distance);
 
     pulse_perms = (svalue[svalue_cnt/4]*multiple)/1000;
+
+    TickType_t last_tick = osKernelGetTickCount();
     for (int i = 0; i < svalue_cnt; i++) {
         motor_set_speed(id, multiple * svalue[i]);
-        osDelay(distance/(pulse_perms*svalue_cnt));
-        LOG_I("speed %d", multiple * svalue[i]);
+        last_tick += (distance/(pulse_perms*svalue_cnt));
+        last_tick += 5;
+        osDelayUntil(last_tick);
     }
-    LOG_I("svalue[svalue_cnt/4]%d", svalue[svalue_cnt/4]);
-    LOG_I("svalue_cnt/4 %d", svalue_cnt/4);
-
-    LOG_I("pulse_perms %d", pulse_perms);
-
-    LOG_I("cnt:%d", svalue_cnt);
-    LOG_I("delay %d", (distance/(pulse_perms*svalue_cnt)));
+    LOG_I("delay %d ticks per svalue data", (distance/(pulse_perms*svalue_cnt))+10);
 }
 
 static void motorTask(void *arg)
