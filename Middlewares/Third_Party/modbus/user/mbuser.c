@@ -160,10 +160,10 @@ eMBUSERReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
         /* Total length of Modbus-PDU is Modbus-Serial-Line-PDU minus
          * size of address field and CRC checksum.
          */
-        *pusLength = ( USHORT )(usRcvBufferPos - MB_SER_PDU_HAED_SIZE - MB_SER_PDU_TAIL_SIZE);
+        *pusLength = ( USHORT )(usRcvBufferPos);
 
         /* Return the start of the Modbus PDU to the caller. */
-        *pucFrame = ( UCHAR * ) & ucUSERBuf[MB_SER_PDU_PDU_OFF];
+        *pucFrame = ( UCHAR * ) & ucUSERBuf[0];
         xFrameReceived = TRUE;
     }
     else
@@ -182,6 +182,7 @@ eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 
+    LOG_I("[MB] eMBUSERSend before critical");
     ENTER_CRITICAL_SECTION(  );
 
     /* Check if the receiver is still in idle state. If not we where to
@@ -195,13 +196,7 @@ eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
         usSndBufferCount = 0;
 
         /* Now copy the Modbus-PDU into the Modbus-Serial-Line-PDU. */
-        pucSndBufferCur[MB_SER_PDU_ADDR_OFF] = ucSlaveAddress;
         usSndBufferCount += usLength;
-
-        /* Calculate CRC16 checksum for Modbus-Serial-Line-PDU. */
-        //usCRC16 = usMBCRC16( ( UCHAR * ) pucSndBufferCur, usSndBufferCount );
-        ucUSERBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 & 0xFF );
-        ucUSERBuf[usSndBufferCount++] = ( UCHAR )( usCRC16 >> 8 );
 
         /* Activate the transmitter. */
         eSndState = STATE_TX_XMIT;
@@ -212,6 +207,7 @@ eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
         eStatus = MB_EIO;
     }
     EXIT_CRITICAL_SECTION(  );
+    LOG_I("[MB] eMBUSERSend exit critical");
     return eStatus;
 }
 

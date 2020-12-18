@@ -492,7 +492,7 @@ eMBPoll( void )
                 }
             }
             /* return a reply. */
-            //eStatus = peMBFrameSendCur( ucMBAddress, ucMBFrame, usLength );
+            eStatus = peMBFrameSendCur(ucMBAddress, ucMBFrame, 14);
             break;
 
         case EV_FRAME_SENT:

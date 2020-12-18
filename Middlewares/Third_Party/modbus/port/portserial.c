@@ -13,7 +13,9 @@ UCHAR ch_rx;
 void
 vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
 {
-    ENTER_CRITICAL_SECTION();
+    UBaseType_t uxSavedInterruptStatus;
+    uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+
     //usart3_enable(xRxEnable, xTxEnable);
     if (xRxEnable) {
         __HAL_UART_ENABLE_IT(&huart3, UART_IT_RXNE);
@@ -25,7 +27,8 @@ vMBPortSerialEnable( BOOL xRxEnable, BOOL xTxEnable )
     } else {
         __HAL_UART_DISABLE_IT(&huart3, UART_IT_TXE);
     }
-    EXIT_CRITICAL_SECTION();
+
+    portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
 }
 
 BOOL
