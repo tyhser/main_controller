@@ -26,6 +26,7 @@
 #include "syslog.h"
 #include "app_main.h"
 #include "interrupt_handler.h"
+#include "motor_controller.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -98,6 +99,7 @@ void MX_FREERTOS_Init(void) {
   app_task_create();
   interrupt_task_create();
   modbus_task_create();
+  motor_controller_init();
 }
 
 /* USER CODE BEGIN Header_StartDefaultTask */

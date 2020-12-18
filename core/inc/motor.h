@@ -46,4 +46,6 @@ bool set_motor_state(motor_id_t id, motor_state_t s);
 void motor_run(motor_id_t id, uint32_t distance, direction_t dir);
 
 status_t motor_event_handler(event_t event_id, void *parameters);
+
+bool motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir);
 #endif

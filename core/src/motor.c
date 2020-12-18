@@ -6,6 +6,7 @@
 #include "motor.h"
 #include "app_event.h"
 #include "cmsis_os.h"
+#include "motor_controller.h"
 
 extern const uint16_t svalue[];
 extern const uint16_t svalue_cnt;
@@ -58,24 +59,6 @@ void motor_zero_handler(uint8_t index, uint8_t on_off)
     if (MOTOR(id).state == MOTOR_RUN && MOTOR(id).direction == DIRECTION_REV && MOTOR(id).zero == true) {
        motor_stop(id);
     }
-#if 1
-    static direction_t dir = DIRECTION_REV;
-    set_motor_direction(MOTOR_SYRINGE_ID, dir);
-
-    if (MOTOR(MOTOR_SYRINGE_ID).state == MOTOR_STOP && id != MOTOR_SYRINGE_ID && is_motor_zero(MOTOR_SYRINGE_ID)) {
-        dir = !dir;
-        motor_enable_disable(MOTOR_SYRINGE_ID, true);
-        motor_run_steps(MOTOR_SYRINGE_ID, 10000);
-    }
-    static int i = 0;
-    if ((MOTOR(MOTOR_SYRINGE_ID).state == MOTOR_STOP) && (id != MOTOR_SYRINGE_ID)) {
-        LOG_I("trigger run");
-        LOG_I("i=%d", i);
-        motor_enable_disable(MOTOR_SYRINGE_ID, true);
-        motor_run_steps(MOTOR_SYRINGE_ID, 10000);
-        i = 1;
-    }
-#endif
 }
 
 void motor_fault_handler(uint8_t index)
@@ -272,25 +255,25 @@ void motor_stop(motor_id_t id)
         case MOTOR_SYRINGE_ID:
         {
             pwm_stop_output(PWM_1);
-            motor_enable_disable(id, false);
+            //motor_enable_disable(id, false);
         }
         break;
         case MOTOR_X_AXIS_ID:
         {
             pwm_stop_output(PWM_2);
-            motor_enable_disable(id, false);
+            //motor_enable_disable(id, false);
         }
         break;
         case MOTOR_Z_AXIS_ID:
         {
             pwm_stop_output(PWM_3);
-            motor_enable_disable(id, false);
+            //motor_enable_disable(id, false);
         }
         break;
         case MOTOR_RECEIVED_ID:
         {
             pwm_stop_output(PWM_4);
-            motor_enable_disable(id, false);
+            //motor_enable_disable(id, false);
         }
         break;
         default:
@@ -479,10 +462,15 @@ status_t motor_event_handler(event_t event_id, void *parameters)
         case EVENT_MOTOR_STEPS:
         {
             motor_step_t *m_step = (motor_step_t *)parameters;
-            LOG_I("[motor] motor:%d dir:%d step:%d", m_step->motor_id, m_step->dir, m_step->step);
+            LOG_I("[motor] send motor controller action motor:%d dir:%d step:%d", m_step->motor_id, m_step->dir, m_step->step);
+
+            motor_action_move_t move = {0};
+            move.motor_id   = m_step->motor_id;
+            move.dir        = m_step->dir;
+            move.steps      = m_step->step;
+            motor_send_action(MOTOR_ACT_MOVE, &move);
 #if 0
             motor_run(m_step->motor_id, m_step->step, m_step->dir);
-#else
             motor_run_with_sspeed(m_step->motor_id, m_step->step, m_step->dir);
 #endif
         }
@@ -546,8 +534,12 @@ void motor_set_speed(motor_id_t id, uint32_t speed)
     }
 }
 
-void motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
+bool motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
 {
+    if (is_motor_zero(id) && dir == DIRECTION_REV) {
+        LOG_W("[motor] Can not rev when in zero position");
+        return false;
+    }
     uint8_t multiple = 100;
 
     /*denomination of distance for Acc*/
@@ -568,12 +560,5 @@ void motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
         osDelayUntil(last_tick);
     }
     LOG_I("delay %d ticks per svalue data", (distance/(pulse_perms*svalue_cnt))+10);
-}
-
-static void motorTask(void *arg)
-{
-    LOG_I("enter motorTask");
-    while (1) {
-
-    }
+    return true;
 }
