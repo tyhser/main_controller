@@ -98,12 +98,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   pwm_output_init();
   motor_init();
   MX_USART1_UART_Init();
   syslog_init();
-  cm_backtrace_init("CmBacktrace", HARDWARE_VERSION, SOFTWARE_VERSION);
+  cm_backtrace_init("main_controller", HARDWARE_VERSION, SOFTWARE_VERSION);
 
   /* USER CODE BEGIN 2 */
 #if 0

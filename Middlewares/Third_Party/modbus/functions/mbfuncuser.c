@@ -69,10 +69,10 @@
 #define OPERAT_TEMP_CONTROL_ON  0xff
 #define OPERAT_TEMP_CONTROL_OFF 0x00
 
-#define BIT_ID      0
-#define BIT_FUNC    1
-#define BIT_OPERAT  2
-#define BIT_DATA    3
+#define BIT_ID      2
+#define BIT_FUNC    3
+#define BIT_OPERAT  4
+#define BIT_DATA    5
 
 /* ----------------------- Static functions ---------------------------------*/
 eMBException    prveMBError2Exception( eMBErrorCode eErrorCode );
