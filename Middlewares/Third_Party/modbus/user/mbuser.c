@@ -148,24 +148,7 @@ eMBUSERReceive( UCHAR * pucRcvAddress, UCHAR ** pucFrame, USHORT * pusLength )
 
     ENTER_CRITICAL_SECTION(  );
     assert( usRcvBufferPos < MB_SER_PDU_SIZE_MAX );
-
-    LOG_I("[MB]ucUSERBuf address:%p", ucUSERBuf);
-    LOG_I("%x", ucUSERBuf[0]);
-    LOG_I("%x", ucUSERBuf[1]);
-    LOG_I("%x", ucUSERBuf[2]);
-    LOG_I("%x", ucUSERBuf[3]);
-    LOG_I("%x", ucUSERBuf[4]);
-    LOG_I("%x", ucUSERBuf[5]);
-    LOG_I("%x", ucUSERBuf[6]);
-    LOG_I("%x", ucUSERBuf[7]);
-    LOG_I("%x", ucUSERBuf[8]);
-    LOG_I("%x", ucUSERBuf[9]);
-    LOG_I("%x", ucUSERBuf[10]);
-    LOG_I("%x", ucUSERBuf[11]);
-    LOG_I("%x", ucUSERBuf[12]);
-    LOG_I("%x", ucUSERBuf[13]);
-    //hex_dump("ucUSERBuf", &ucUSERBuf, usRcvBufferPos);
-    LOG_I("[MB]usRcvBufferPos:%d", usRcvBufferPos);
+    hex_dump("ucUSERBuf", ucUSERBuf, 14);
     if( ( usRcvBufferPos >= MB_SER_PDU_SIZE_MIN )
         && ( is_correct_frame((UCHAR *)ucUSERBuf, usRcvBufferPos) == TRUE ))
     {

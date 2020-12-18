@@ -23,6 +23,11 @@
 
 /* USER CODE BEGIN 0 */
 
+uint32_t pwm1_remain_steps = 0;
+uint32_t pwm2_remain_steps = 0;
+uint32_t pwm3_remain_steps = 0;
+uint32_t pwm4_remain_steps = 0;
+
 uint8_t ( *pxMBPortCBTimerExpired ) ( void );
 
 /* USER CODE END 0 */
@@ -54,7 +59,7 @@ void MX_TIM1_Init(void)
   htim1.Init.Period = 9999;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
-  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
   {
     Error_Handler();
@@ -111,7 +116,7 @@ void MX_TIM2_Init(void)
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim2.Init.Period = 9999;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
   {
     Error_Handler();
@@ -154,7 +159,7 @@ void MX_TIM3_Init(void)
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim3.Init.Period = 9999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
   {
     Error_Handler();
@@ -197,7 +202,7 @@ void MX_TIM4_Init(void)
   htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim4.Init.Period = 9999;
   htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
   if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
   {
     Error_Handler();
@@ -688,37 +693,88 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 /* USER CODE BEGIN 1 */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+    uint32_t pulse_num = 0;
+
     if (htim == &htim8) {
-        HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
-        HAL_TIM_Base_Stop_IT(&htim1);
-        HAL_TIM_Base_Stop_IT(&htim8);
-        __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
-        set_motor_state(MOTOR_SYRINGE_ID, MOTOR_STOP);
-        motor_enable_disable(MOTOR_SYRINGE_ID, false);
+        if (pwm3_remain_steps > 0) {
+            if (pwm3_remain_steps > 0xffff) {
+                pulse_num = 0xffff;
+                pwm3_remain_steps -= 0xffff;
+            } else {
+                pulse_num = pwm3_remain_steps;
+                pwm3_remain_steps = 0;
+            }
+            __HAL_TIM_SetAutoreload(&htim8, pulse_num - 1);
+            HAL_TIM_Base_Start_IT(&htim8);
+            __HAL_TIM_ENABLE_IT(&htim8, TIM_IT_UPDATE);
+
+        } else {
+            HAL_TIM_PWM_Stop(&htim1, TIM_CHANNEL_4);
+            HAL_TIM_Base_Stop_IT(&htim1);
+            HAL_TIM_Base_Stop_IT(&htim8);
+            __HAL_TIM_DISABLE_IT(&htim8, TIM_IT_UPDATE);
+            set_motor_state(MOTOR_SYRINGE_ID, MOTOR_STOP);
+        }
     }
     else if (htim == &htim9) {
-        HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
-        HAL_TIM_Base_Stop_IT(&htim2);
-        HAL_TIM_Base_Stop_IT(&htim9);
-        __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
-        set_motor_state(MOTOR_X_AXIS_ID, MOTOR_STOP);
-        motor_enable_disable(MOTOR_X_AXIS_ID, false);
+        if (pwm2_remain_steps > 0) {
+            if (pwm2_remain_steps > 0xffff) {
+                pulse_num = 0xffff;
+                pwm2_remain_steps -= 0xffff;
+            } else {
+                pulse_num = pwm2_remain_steps;
+                pwm2_remain_steps = 0;
+            }
+            __HAL_TIM_SetAutoreload(&htim9, pulse_num - 1);
+            HAL_TIM_Base_Start_IT(&htim9);
+            __HAL_TIM_ENABLE_IT(&htim9, TIM_IT_UPDATE);
+        } else {
+            HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_2);
+            HAL_TIM_Base_Stop_IT(&htim2);
+            HAL_TIM_Base_Stop_IT(&htim9);
+            __HAL_TIM_DISABLE_IT(&htim9, TIM_IT_UPDATE);
+            set_motor_state(MOTOR_X_AXIS_ID, MOTOR_STOP);
+        }
     }
     else if (htim == &htim12) {
-        HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
-        HAL_TIM_Base_Stop_IT(&htim4);
-        HAL_TIM_Base_Stop_IT(&htim12);
-        __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
-        set_motor_state(MOTOR_Z_AXIS_ID, MOTOR_STOP);
-        motor_enable_disable(MOTOR_Z_AXIS_ID, false);
+        if (pwm1_remain_steps > 0) {
+            if (pwm1_remain_steps > 0xffff) {
+                pulse_num = 0xffff;
+                pwm1_remain_steps -= 0xffff;
+            } else {
+                pulse_num = pwm1_remain_steps;
+                pwm1_remain_steps = 0;
+            }
+            __HAL_TIM_SetAutoreload(&htim12, pulse_num - 1);
+            HAL_TIM_Base_Start_IT(&htim12);
+            __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
+        } else {
+            HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3);
+            HAL_TIM_Base_Stop_IT(&htim4);
+            HAL_TIM_Base_Stop_IT(&htim12);
+            __HAL_TIM_DISABLE_IT(&htim12, TIM_IT_UPDATE);
+            set_motor_state(MOTOR_Z_AXIS_ID, MOTOR_STOP);
+        }
     }
     else if (htim == &htim5) {
-        HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
-        HAL_TIM_Base_Stop_IT(&htim3);
-        HAL_TIM_Base_Stop_IT(&htim5);
-        __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
-        set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
-        motor_enable_disable(MOTOR_RECEIVED_ID, false);
+        if (pwm4_remain_steps > 0) {
+            if (pwm4_remain_steps > 0xffff) {
+                pulse_num = 0xffff;
+                pwm4_remain_steps -= 0xffff;
+            } else {
+                pulse_num = pwm4_remain_steps;
+                pwm4_remain_steps = 0;
+            }
+            __HAL_TIM_SetAutoreload(&htim5, pulse_num - 1);
+            HAL_TIM_Base_Start_IT(&htim5);
+            __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
+        } else {
+            HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_1);
+            HAL_TIM_Base_Stop_IT(&htim3);
+            HAL_TIM_Base_Stop_IT(&htim5);
+            __HAL_TIM_DISABLE_IT(&htim5, TIM_IT_UPDATE);
+            set_motor_state(MOTOR_RECEIVED_ID, MOTOR_STOP);
+        }
     }
     else if (htim == &htim7) {
         (void)pxMBPortCBTimerExpired();
@@ -773,28 +829,27 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
     {
         case PWM_1:
         {
+            pwm1_remain_steps = pulse_num;
+            if (pulse_num > 0xffff) {
+                pulse_num = 0xffff;
+                pwm1_remain_steps -= 0xffff;
+            }
             __HAL_TIM_ENABLE_IT(&htim12, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim12, pulse_num - 1);
             __HAL_TIM_SetAutoreload(&htim4, 1000000/cycle - 1);
-            __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3, (1000000/cycle)/2);
+            __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3,(1000000/cycle)/2);
             HAL_TIM_Base_Start_IT(&htim12);
             HAL_TIM_Base_Start_IT(&htim4);
             HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3);
         }
         break;
-        case PWM_3:
-        {
-            __HAL_TIM_ENABLE_IT(&htim8, TIM_IT_UPDATE);
-            __HAL_TIM_SetAutoreload(&htim8, pulse_num - 1);
-            __HAL_TIM_SetAutoreload(&htim1, 1000000/cycle - 1);
-            __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, (1000000/cycle)/2);
-            HAL_TIM_Base_Start_IT(&htim8);
-            HAL_TIM_Base_Start_IT(&htim1);
-            HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
-        }
-        break;
         case PWM_2:
         {
+            pwm2_remain_steps = pulse_num;
+            if (pulse_num > 0xffff) {
+                pulse_num = 0xffff;
+                pwm2_remain_steps -= 0xffff;
+            }
             __HAL_TIM_ENABLE_IT(&htim9, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim9, pulse_num - 1);
             __HAL_TIM_SetAutoreload(&htim2, 1000000/cycle - 1);
@@ -804,8 +859,29 @@ void pwm_output(pwm_id_t pwm_id, uint32_t cycle, uint32_t pulse_num)
             HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
         }
         break;
+        case PWM_3:
+        {
+            pwm3_remain_steps = pulse_num;
+            if (pulse_num > 0xffff) {
+                pulse_num = 0xffff;
+                pwm3_remain_steps -= 0xffff;
+            }
+            __HAL_TIM_ENABLE_IT(&htim8, TIM_IT_UPDATE);
+            __HAL_TIM_SetAutoreload(&htim8, pulse_num - 1);
+            __HAL_TIM_SetAutoreload(&htim1, 1000000/cycle - 1);
+            __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_4, (1000000/cycle)/2);
+            HAL_TIM_Base_Start_IT(&htim8);
+            HAL_TIM_Base_Start_IT(&htim1);
+            HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+        }
+        break;
         case PWM_4:
         {
+            pwm4_remain_steps = pulse_num;
+            if (pulse_num > 0xffff) {
+                pulse_num = 0xffff;
+                pwm4_remain_steps -= 0xffff;
+            }
             __HAL_TIM_ENABLE_IT(&htim5, TIM_IT_UPDATE);
             __HAL_TIM_SetAutoreload(&htim5, pulse_num - 1);
             __HAL_TIM_SetAutoreload(&htim3, 1000000/cycle - 1);
@@ -849,6 +925,31 @@ void timer7_disable(void)
 void timer7_deinit(void)
 {
     HAL_TIM_Base_MspDeInit(&htim7);
+}
+
+void set_pwm_freq(pwm_id_t id, uint32_t freq)
+{
+    switch (id)
+    {
+        case PWM_1:
+            __HAL_TIM_SetAutoreload(&htim4, 1000000/freq - 1);
+            __HAL_TIM_SetCompare(&htim4, TIM_CHANNEL_3,(1000000/freq)/2);
+            break;
+        case PWM_2:
+            __HAL_TIM_SetAutoreload(&htim2, 1000000/freq - 1);
+            __HAL_TIM_SetCompare(&htim2, TIM_CHANNEL_3,(1000000/freq)/2);
+            break;
+        case PWM_3:
+            __HAL_TIM_SetAutoreload(&htim1, 1000000/freq - 1);
+            __HAL_TIM_SetCompare(&htim1, TIM_CHANNEL_3,(1000000/freq)/2);
+            break;
+        case PWM_4:
+            __HAL_TIM_SetAutoreload(&htim3, 1000000/freq - 1);
+            __HAL_TIM_SetCompare(&htim3, TIM_CHANNEL_3,(1000000/freq)/2);
+            break;
+        default:
+            break;
+    }
 }
 /* USER CODE END 1 */
 
