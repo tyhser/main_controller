@@ -63,7 +63,6 @@ void MX_USART3_UART_Init(uint32_t baud)
   {
     Error_Handler();
   }
-
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
