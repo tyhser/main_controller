@@ -49,3 +49,5 @@ void app_task_create(void)
 {
     mainTaskHandle = osThreadNew(mainTask, NULL, &mainTask_attributes);
 }
+
+

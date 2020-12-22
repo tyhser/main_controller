@@ -98,7 +98,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  //MX_IWDG_Init();
+  MX_IWDG_Init();
   pwm_output_init();
   motor_init();
   MX_USART1_UART_Init();
@@ -205,7 +205,13 @@ void assert_failed(uint8_t *file, uint32_t line)
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, signed char *pcTaskName)
 {
-    printf("stack overflow task id:[%d], taskname:[%s]", xTask, pcTaskName);
+    printf("stack overflow task id:[%p], taskname:[%s]\n", xTask, pcTaskName);
 
+}
+
+void show_task_stack_state(osThreadId_t threadId)
+{
+    uint32_t stack_space = osThreadGetStackSpace(threadId);
+    LOG_I("task:%s space:%04x", osThreadGetName(threadId), stack_space);
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

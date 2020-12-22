@@ -183,7 +183,7 @@ static void vprint_module_log(const char *func,
                 uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
                 if (syslog_context.syslog_init_done) {
                     /* gpt init done, time can be printed  */
-                    printf("[%s/ T: %d F: %s L: %d]: ",
+                    printf("[%s/ T: %d F: %s L: %d]:\t\t",
                            change_level_to_string(level),
                            osKernelGetTickCount(),
                            func,

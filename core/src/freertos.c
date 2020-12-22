@@ -114,11 +114,24 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   uint32_t i = 0;
+  extern osThreadId_t mainTaskHandle;
+  extern osThreadId_t interruptTaskHandle;
+  extern osThreadId_t modbusTaskHandle;
+  extern osThreadId_t motor_controller_task_handle;
   for(;;)
   {
     feed_dog();
     led_toggle();
     osDelay(300);
+#if 0
+    i++;
+    if (i%4 == 0) {
+        show_task_stack_state(mainTaskHandle);
+        show_task_stack_state(interruptTaskHandle);
+        show_task_stack_state(modbusTaskHandle);
+        show_task_stack_state(motor_controller_task_handle);
+    }
+#endif
   }
   /* USER CODE END StartDefaultTask */
 }
