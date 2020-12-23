@@ -29,6 +29,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
+#include "cmsis_os.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -178,6 +179,8 @@ void Error_Handler(void);
 #define INT_PRI_HIGH 8
 /* USER CODE END Private defines */
 #define ASSERT(expr) ((expr) ? (void)0 : assert_failed((uint8_t *)__FILE__, __LINE__))
+
+void show_task_stack_state(osThreadId_t threadId);
 #ifdef __cplusplus
 }
 #endif

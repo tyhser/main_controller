@@ -1,6 +1,6 @@
 #include "stdint.h"
 
-const uint16_t svalue[] =
+const uint16_t accvalue[] =
 {
     18,  19,  20,  21,  22,  23,  24,  25,  27,  28,  29,  31,  32,  34,  36,  37,
     39,  41,  43,  45,  47,  50,  52,  55,  57,  60,  63,  66,  69,  72,  76,  79,
@@ -12,10 +12,11 @@ const uint16_t svalue[] =
     832, 839, 846, 852, 858, 864, 870, 875, 881, 886, 891, 896, 900, 905, 909, 913,
     917, 921, 924, 928, 931, 934, 937, 940, 943, 945, 948, 950, 953, 955, 957, 959,
     961, 963, 964, 966, 968, 969, 971, 972, 973, 975, 976, 977, 978, 979, 980, 981,
-    982,
+    982
+};
 
-    982, 982,
-
+const uint16_t decvalue[] =
+{
     982, 981, 980, 979, 978, 977, 976, 975, 973, 972, 971, 969, 968, 966, 964, 963,
     961, 959, 957, 955, 953, 950, 948, 945, 943, 940, 937, 934, 931, 928, 924, 921,
     917, 913, 909, 905, 900, 896, 891, 886, 881, 875, 870, 864, 858, 852, 846, 839,
@@ -29,5 +30,7 @@ const uint16_t svalue[] =
     18
 };
 
-const uint16_t svalue_cnt = (sizeof(svalue)/sizeof(svalue[0]));
-const uint16_t svalue_diff = (svalue[svalue_cnt-1] - svalue[0]);
+const uint16_t full_value = 982;
+
+const uint16_t svalue_cnt = (sizeof(accvalue)/sizeof(accvalue[0]));
+const uint16_t svalue_diff = (accvalue[svalue_cnt-1] - accvalue[0]);

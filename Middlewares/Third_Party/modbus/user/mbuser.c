@@ -182,7 +182,6 @@ eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
     eMBErrorCode    eStatus = MB_ENOERR;
     USHORT          usCRC16;
 
-    LOG_I("[MB] eMBUSERSend before critical");
     ENTER_CRITICAL_SECTION(  );
 
     /* Check if the receiver is still in idle state. If not we where to
@@ -207,7 +206,6 @@ eMBUSERSend( UCHAR ucSlaveAddress, const UCHAR * pucFrame, USHORT usLength )
         eStatus = MB_EIO;
     }
     EXIT_CRITICAL_SECTION(  );
-    LOG_I("[MB] eMBUSERSend exit critical");
     return eStatus;
 }
 

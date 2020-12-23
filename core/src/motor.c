@@ -7,6 +7,10 @@
 #include "app_event.h"
 #include "cmsis_os.h"
 #include "motor_controller.h"
+#include "math.h"
+
+#define SUB_STEP 32
+#define LEAD_MM 2
 
 extern const uint16_t svalue[];
 extern const uint16_t svalue_cnt;
@@ -117,9 +121,10 @@ bool set_motor_state(motor_id_t id, motor_state_t s)
         MOTOR(id).state = (s);
 
         motor_state_change_t state_notify = {0};
+        state_notify.motor_id = id;
         state_notify.pre_state = pre_state;
         state_notify.cur_state = s;
-        event_callback(EVENT_MOTOR_STATE_CHANGE, (event_param_t *)&state_notify);
+        //event_callback(EVENT_MOTOR_STATE_CHANGE, (event_param_t *)&state_notify);
         LOG_I("[motor]motor[%d] previous state:[%d] current state:[%d]", id, pre_state, s);
         ret = true;
     }
@@ -420,7 +425,7 @@ void motor_init(void)
     motor_enable_disable(MOTOR_Z_AXIS_ID,   true);
     motor_enable_disable(MOTOR_RECEIVED_ID, true);
 #endif
-    set_subdriver_param(16);
+    set_subdriver_param(32);
     MOTOR(MOTOR_SYRINGE_ID).fault   = false;
     MOTOR(MOTOR_X_AXIS_ID).fault    = false;
     MOTOR(MOTOR_Z_AXIS_ID).fault    = false;
@@ -486,6 +491,12 @@ status_t motor_event_handler(event_t event_id, void *parameters)
             }
         }
         break;
+        case EVENT_MOTOR_STATE_CHANGE:
+        {
+            motor_state_change_t *state_notify = (motor_state_change_t *)parameters;
+            LOG_I("[motor]EVENT_MOTOR_STATE_CHANGE motor:%d pre %d cur %d", state_notify->motor_id, state_notify-> pre_state, state_notify->cur_state);
+        }
+        break;
         case EVENT_VALVE_OPEN_CLOSE:
         {
             valve_open_close_t *v_os = (valve_open_close_t *)parameters;
@@ -534,6 +545,7 @@ void motor_set_speed(motor_id_t id, uint32_t speed)
     }
 }
 
+#if 0
 bool motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
 {
     if (is_motor_zero(id) && dir == DIRECTION_REV) {
@@ -561,4 +573,139 @@ bool motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
     }
     LOG_I("delay %d ticks per svalue data", (distance/(pulse_perms*svalue_cnt))+10);
     return true;
+}
+
+#endif
+/**
+ * @brief: 【公式法】S型加减速曲线计算，公式：Y=Fstart+(Fend-Fstart)/(1+exp(-flexible*(x-num)/num))
+ * @param   [OUT]   Fre[]       输出频率值
+ *          [OUT]   Period[]    输出周期值
+ *          [IN]    Len         变速脉冲点
+ *          [IN]    StartFre    开始频率
+ *          [IN]    EndFre      结束频率
+ *          [IN]    Flexible    曲线参数
+ * @return: none
+ */
+void calc_curve(uint16_t Fre[], uint32_t Period[],  float Len, float StartFre, float EndFre, float Flexible)
+{
+    UNUSED(Period);
+    float melo;
+    for (int i = 0; i < Len; i++) {
+        melo = Flexible * (i-Len/2) / (Len/2);
+        Fre[i] = (uint16_t)(round(StartFre + (EndFre - StartFre) / (1 + expf(-melo))));
+        //Period[i] = (uint32_t)(TIM_CLK / TIM_FRESCALER / Fre[i]);
+    }
+}
+
+void T_curve_fun(const float *u0,
+			const float *u1,
+			const float *u2,
+			const float *t,
+			float *y0,
+			float *y1,
+			float *y2)
+{
+    static float lasty1 = 0;
+    float Am = u0[0];
+    float Vm = u1[0];
+    float Pf = u2[0];
+    float T = t[0];
+    
+    /*acc time*/
+    float Ta = Vm/Am;
+    /*full speed time*/
+    float Tm = (Pf - Am*Ta*Ta)/Vm;
+    /*final time*/
+    float Tf = 2*Ta+Tm;
+    //LOG_I("Tf: %f",Tf);
+
+    if (Tm > 0) {
+        if (T <= Ta) {
+            y0[0] = 0.5*Am*T*T;
+            y1[0] = Am*T;
+            y2[0] = Am;
+        } else if (T<=(Ta+Tm)) {
+            y0[0] = 0.5*Am*Ta*Ta + Vm*(T-Ta);
+            y1[0] = Vm;
+            y2[0] = 0;
+        } else if (T<=(Ta+Tm+Ta)) {
+            y0[0] = 0.5*Am*Ta*Ta + Vm*Tm + 0.5*Am*(T-Ta-Tm)*(T-Ta-Tm);
+            y1[0] = Vm-Am*(T-Ta-Tm);
+            y2[0] = -Am;
+        }
+    } else {
+
+        Ta = sqrt(Pf/Am);
+        if (T < Ta) {
+            y0[0] = 0.5*Am*T*T;
+            y1[0] = Am*T;
+            y2[0] = Am;
+        } else {
+            y0[0] = 0.5*Am*Ta*Ta + 0.5*Am*(T-Ta)*(T-Ta);
+            y1[0] = Am*Ta - Am*(T-Ta)+0.5;
+            y2[0] = -Am;
+        }
+    }
+}
+
+bool motor_run_with_sspeed(motor_id_t id, uint32_t distance, direction_t dir)
+{
+    if (is_motor_zero(id) && dir == DIRECTION_REV) {
+        LOG_W("[motor] Can not rev when in zero position");
+        return false;
+    }
+
+
+}
+
+static uint32_t dist_to_pulse(uint16_t dis)
+{
+    return SUB_STEP*200*dis/LEAD_MM;
+}
+
+static uint32_t speed_to_freq(uint16_t speed)
+{
+    return dist_to_pulse(speed);
+}
+
+/* unit: speed: mm/s time:ms acc:mm/s2 */
+bool motor_run_liner_speed(motor_id_t id, uint32_t distance, direction_t dir)
+{
+    if (is_motor_zero(id) && dir == DIRECTION_REV) {
+        LOG_W("[motor] Can not rev when in zero position");
+        return false;
+    }
+
+    /*speed mm/s*/
+    float max_speed = 30.0;
+    float min_speed = 1.0;
+
+    float Am = 40.0;
+    float Vm = max_speed;
+    float Pf = (float)distance;
+
+    float P = 0;
+    float V = 0;
+    float A = 0;
+
+    set_motor_direction (id, dir);
+    motor_enable_disable(id, true);
+    motor_run_steps     (id, dist_to_pulse(distance));
+
+#if 1
+    TickType_t last_tick = osKernelGetTickCount();
+    for (float i = 0.0;; i+=0.001) {
+        T_curve_fun(&Am, &Vm, &Pf, &i, &P, &V, &A);
+        //LOG_I("set freq:%d", speed_to_freq(V));
+        if (speed_to_freq(V) != 0) {
+            motor_set_speed(id, speed_to_freq(V));
+        }
+        //LOG_I("motor %d state:%d i:%f", id, MOTOR(id).state, i);
+        if (MOTOR(id).state == MOTOR_STOP) {
+            break;
+        }
+        last_tick += 1;
+        osDelayUntil(last_tick);
+    }
+#endif
 }

@@ -8,7 +8,7 @@
 const osThreadAttr_t motor_controller_task_attributes = {
     .name = "motorControllerTask",
     .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 128 * 5
+    .stack_size = 128 * 30
 };
 
 osThreadId_t motor_controller_task_handle;
@@ -110,7 +110,7 @@ motor_status_t motor_action_handler(motor_action_id_t id, void *parameters)
         {
             motor_action_move_t *move = (motor_action_move_t *)parameters;
 
-            if (motor_run_with_sspeed(move->motor_id, move->steps, move->dir)) {
+            if (motor_run_liner_speed(move->motor_id, move->steps, move->dir)) {
                 LOG_I("[motor_controller] action motor %d move with sspeed steps:%d dir:%d", move->motor_id, move->steps, move->dir);
             }
         }

@@ -50,6 +50,7 @@ typedef struct {
 } channel_id_t;
 
 typedef struct {
+    uint8_t motor_id;
     uint8_t pre_state;
     uint8_t cur_state;
 } motor_state_change_t;
