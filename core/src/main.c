@@ -28,6 +28,7 @@
 #include "syslog.h"
 #include "motor.h"
 #include "mb.h"
+#include "dma_printf.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -102,6 +103,7 @@ int main(void)
   pwm_output_init();
   motor_init();
   MX_USART1_UART_Init();
+  dma_printf_init(&huart1);
   syslog_init();
   cm_backtrace_init("main_controller", HARDWARE_VERSION, SOFTWARE_VERSION);
 

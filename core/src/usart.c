@@ -19,6 +19,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
+#include "dma_printf.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -89,6 +90,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+
     /* USART1 DMA Init */
     /* USART1_TX Init */
     hdma_usart1_tx.Instance = DMA2_Stream7;
@@ -106,6 +108,9 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
       Error_Handler();
     }
     __HAL_LINKDMA(uartHandle,hdmatx,hdma_usart1_tx);
+
+    HAL_NVIC_SetPriority(USART1_IRQn, INT_PRI_LOW, 0);
+    HAL_NVIC_EnableIRQ(USART1_IRQn);
   }
   else if(uartHandle->Instance==USART3)
   {
@@ -181,6 +186,14 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+
+int __io_putchar(int ch)
+{
+  dma_printf_putc(ch&0xFF);
+  return ch;
+}
+
+#if 1
 int _write(int fd, char *ptr, int len)
 {
     int i = 0;
@@ -193,16 +206,25 @@ int _write(int fd, char *ptr, int len)
     if (fd > 2) {
         return -1;
     }
-#if 1
+#if 0
     if (HAL_OK == HAL_UART_Transmit(&huart1, ptr, len, 0xffff)) {
         i = len;
     }
-#else 
-    if (HAL_OK == HAL_UART_Transmit_DMA(&huart1, ptr, len)) {
-        i = len;
-    }
 #endif
-    return i;
+    int DataIdx;
+
+	for (DataIdx = 0; DataIdx < len; DataIdx++)
+	{
+		__io_putchar(*ptr++);
+	}
+    return DataIdx;
+}
+#endif
+
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart){
+    if (huart->Instance == USART1) {
+        dma_printf_send_it(huart);
+    }
 }
 
 void usart3_enable(uint8_t rx_enable, uint8_t tx_enable)
