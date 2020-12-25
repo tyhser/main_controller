@@ -21,6 +21,8 @@ PROJECT_FILES = $(PROJECT_SRC)/src/main.c \
                 $(PROJECT_SRC)/src/mdtask.c\
                 $(PROJECT_SRC)/src/motor_data.c\
                 $(PROJECT_SRC)/src/motor_controller.c\
+                $(PROJECT_SRC)/src/dma_printf.c \
+                $(PROJECT_SRC)/src/dma_ring.c \
 
 
 

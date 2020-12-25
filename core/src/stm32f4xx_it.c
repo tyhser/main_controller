@@ -172,6 +172,11 @@ void DebugMon_Handler(void)
 /**
   * @brief This function handles USART3 global interrupt.
   */
+void USART1_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart1);
+}
+
 void USART3_IRQHandler(void)
 {
   extern void vUSARTHandler(void);
@@ -217,13 +222,6 @@ void TIM7_IRQHandler(void)
 void DMA2_Stream7_IRQHandler(void)
 {
   HAL_DMA_IRQHandler(&hdma_usart1_tx);
-  /* USER CODE BEGIN DMA2_Stream7_IRQn 1 */
-  huart1.gState = HAL_UART_STATE_READY;
-  hdma_usart1_tx.State = HAL_DMA_STATE_READY;
-  __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_TCIF3_7);
-  __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_HTIF3_7);
-  __HAL_DMA_CLEAR_FLAG(&hdma_usart1_tx, DMA_FLAG_FEIF3_7 );
-  __HAL_UNLOCK(&hdma_usart1_tx); 
 }
 
 /**
